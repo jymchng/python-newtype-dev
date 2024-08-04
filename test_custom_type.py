@@ -106,6 +106,7 @@ class Manager(BaseNewTypeEmployee):
         print("employee: ", employee)
         print("employees: ", employees)
         print(super().__init__)
+        super().__init__(employee)
         self.employees = employees or []
 
     def add_employee(self, employee: Employee):

@@ -17,7 +17,7 @@ class NRIC(NewType(str)):
 
     def __init__(self, val: "str", hello):
         super().__init__(val)
-        self.__newtype__(val)
+        self.__validate__(val) # valudation
         self._prefix = val[0]
         self._suffix = val[-1]
         self._digits = val[1:-1]
@@ -29,8 +29,8 @@ class NRIC(NewType(str)):
             f"NRIC(Prefix:{self._prefix}, Suffix:{self._suffix}, Digits:{self._digits})"
         )
 
-    @classmethod
-    def __newtype__(cls, nric: "str"):
+    @staticmethod
+    def __validate__(nric: "str"):
         alpha_ST = ("J", "Z", "I", "H", "G", "F", "E", "D", "C", "B", "A")
         alpha_GF = ("X", "W", "U", "T", "R", "Q", "P", "N", "M", "L", "K")
         alpha_M = ("K", "L", "J", "N", "P", "Q", "R", "T", "U", "W", "X")
@@ -60,9 +60,9 @@ class NRIC(NewType(str)):
             assert alpha_GF[expected_checksum] == nric[8]
 
 
-class GoodManNRIC(NRIC):
+class GoodManNRIC(NRIC): # inherit from `NRIC` directly, NOT `NewType(NRIC)`
     def __init__(self, val: "str", hello: "int", bye: "int"):
-        super().__init__(val, hello)
+        super().__init__(val, hello) # calls NRIC.__init__(self, val, hello)
         self.bye = bye
 
     @property
