@@ -1,0 +1,23 @@
+{
+    "configurations": [
+      {
+        "name": "Linux",
+        "includePath": [
+          "${fileDirname}/../**",
+          "/usr/include/python3.10/**"
+        ],
+        "defines": [
+          "_DEBUG",
+          "UNICODE",
+          "_UNICODE"
+        ],
+        "windowsSdkVersion": "10.0.18362.0",
+        "compilerPath": "/usr/bin/clang",
+        "cStandard": "c11",
+        "cppStandard": "c++17",
+        "intelliSenseMode": "linux-clang-x64"
+      }
+    ],
+    "version": 4
+  }
+  
