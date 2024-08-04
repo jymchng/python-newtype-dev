@@ -6,11 +6,9 @@ __all__: "list[str]" = []
 from typing import TYPE_CHECKING, Protocol
 from weakref import WeakKeyDictionary
 
-from newtypeinit import NewInit
+from newtypeinit import (NewInit, NEWTYPE_INIT_ARGS_STR, NEWTYPE_INIT_KWARGS_STR)
 from newtypemethod import NewTypeMethod
 
-NEWTYPE_INIT_ARGS_STR = "_newtype_init_args_"
-NEWTYPE_INIT_KWARGS_STR = "_newtype_init_kwargs_"
 NEWTYPE_EXCLUDE_FUNC_STR = "_newtype_exclude_func_"
 UNDEFINED = object()
 

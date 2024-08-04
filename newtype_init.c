@@ -5,6 +5,10 @@
 #include <stddef.h>
 #include "newtype_init.h"
 
+// Constants for initialization arguments
+#define NEWTYPE_INIT_ARGS_STR "_newtype_init_args_"
+#define NEWTYPE_INIT_KWARGS_STR "_newtype_init_kwargs_"
+
 static int NewInit_init(NewInitObject *self, PyObject *args, PyObject *kwds) {
   PyObject *func;
 
@@ -217,6 +221,23 @@ PyMODINIT_FUNC PyInit_newtypeinit(void) {
   m = PyModule_Create(&newinitmodule);
   if (m == NULL)
     return NULL;
+
+  // #define NEWTYPE_INIT_ARGS_STR "_newtype_init_args_"
+  // #define NEWTYPE_INIT_KWARGS_STR "_newtype_init_kwargs_"
+
+  PyObject* PY_NEWTYPE_INIT_KWARGS_STR = PyUnicode_FromString(NEWTYPE_INIT_KWARGS_STR);
+  if (PY_NEWTYPE_INIT_KWARGS_STR == NULL) {
+    Py_DECREF(m);
+    return NULL;
+  }
+  PyModule_AddObject(m, "NEWTYPE_INIT_KWARGS_STR", PY_NEWTYPE_INIT_KWARGS_STR);
+
+  PyObject* PY_NEWTYPE_INIT_ARGS_STR = PyUnicode_FromString(NEWTYPE_INIT_ARGS_STR);
+  if (PY_NEWTYPE_INIT_ARGS_STR == NULL) {
+    Py_DECREF(m);
+    return NULL;
+  }
+  PyModule_AddObject(m, "NEWTYPE_INIT_ARGS_STR", PY_NEWTYPE_INIT_ARGS_STR);
 
   Py_INCREF(&NewInitType);
   if (PyModule_AddObject(m, "NewInit", (PyObject *)&NewInitType) < 0) {

@@ -140,6 +140,7 @@ def test_hello_word():
             if isinstance(other, GoodStr):
                 return self.number + other.number
             return self.number + other
+        
 
     hello = GoodStr("hello", 3)
     world = GoodStr(" world!", 5)
@@ -150,12 +151,14 @@ def test_hello_word():
     assert str(hello + world) == "8"
     assert (hello + world) == 8
 
-    bye = hello.replace("hello", "bye")
+    bye = hello.replace("hello", world) # replace the `str` in `hello` with the `str`-ness in `world`
     assert bye.number == 3
     assert world.number == 5
     assert type(bye + world) is int
     assert str(bye + world) == "8"
     assert (bye + world) == 8
+    
+    
 
 
 class BlockchainAddress(NewType(str), ABC):
