@@ -80,6 +80,16 @@ def NewType(type_: "GenericTypeType", **context) -> "GenericTypeType":
     #         print(cls.__init__())
     #         print("cls.__dict__: ", cls.__dict__, " at end of __init_subclass__")
     #         return cls
+    
+    # if hasattr(type_, '__slots__'):
+    #     from abc import ABCMeta
+    #     class NewTypeMeta(ABCMeta):
+            
+    #         def __new__(meta, name, bases, attrs):
+    #             return ABCMeta.__new__(meta, name, bases, {**attrs, **{'__slots__': (*type_.__slots__, NEWTYPE_INIT_ARGS_STR, NEWTYPE_INIT_KWARGS_STR)}})
+    #     metaclass = NewTypeMeta
+    # else:
+    #     metaclass = type
 
     class BaseNewType(type_):
         def __init_subclass__(cls, **context) -> None:
