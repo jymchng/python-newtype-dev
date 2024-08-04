@@ -17,7 +17,7 @@ UNDEFINED = object()
 if TYPE_CHECKING:
     from typing import Any, Dict, Tuple, Type, TypeVar
 
-    GenericTypeType = TypeVar("GenericTypeType", type)
+    T = TypeVar("T")
 
     class NewTypeObject(Protocol):
         _args_: "Tuple[Any, ...]"
@@ -36,7 +36,7 @@ def func_is_excluded(func):
     return getattr(func, NEWTYPE_EXCLUDE_FUNC_STR, False)
 
 
-def NewType(type_: "GenericTypeType", **context) -> "GenericTypeType":
+def NewType(type_: "T", **context) -> "T":
     try:
         # we try to see if it is cached, if it is not, no problem either
         if type_ in __GLOBAL_INTERNAL_TYPE_CACHE__:
@@ -44,6 +44,31 @@ def NewType(type_: "GenericTypeType", **context) -> "GenericTypeType":
             return __GLOBAL_INTERNAL_TYPE_CACHE__[type_]
     except KeyError:
         pass
+
+    if hasattr(type_, "__slots__"):
+        from abc import ABCMeta
+
+        class NewTypeMeta(ABCMeta):
+            def __new__(meta, name, bases, attrs):
+                return ABCMeta.__new__(
+                    meta,
+                    name,
+                    bases,
+                    {
+                        **attrs,
+                        **{
+                            "__slots__": (
+                                *type_.__slots__,
+                                NEWTYPE_INIT_ARGS_STR,
+                                NEWTYPE_INIT_KWARGS_STR,
+                            )
+                        },
+                    },
+                )
+
+        metaclass = NewTypeMeta
+    else:
+        metaclass = type
 
     # class BaseBaseNewType(type_):
     #     def __init_subclass__(cls, **context) -> None:
@@ -80,18 +105,11 @@ def NewType(type_: "GenericTypeType", **context) -> "GenericTypeType":
     #         print(cls.__init__())
     #         print("cls.__dict__: ", cls.__dict__, " at end of __init_subclass__")
     #         return cls
-    
-    # if hasattr(type_, '__slots__'):
-    #     from abc import ABCMeta
-    #     class NewTypeMeta(ABCMeta):
-            
-    #         def __new__(meta, name, bases, attrs):
-    #             return ABCMeta.__new__(meta, name, bases, {**attrs, **{'__slots__': (*type_.__slots__, NEWTYPE_INIT_ARGS_STR, NEWTYPE_INIT_KWARGS_STR)}})
-    #     metaclass = NewTypeMeta
-    # else:
-    #     metaclass = type
 
     class BaseNewType(type_):
+        if hasattr(type_, "__slots__"):
+            __slots__ = (*getattr(type_, "__slots__"), NEWTYPE_INIT_ARGS_STR, NEWTYPE_INIT_KWARGS_STR)
+
         def __init_subclass__(cls, **context) -> None:
             super().__init_subclass__(**context)
             # print(type_, type_.__dict__)
@@ -131,6 +149,8 @@ def NewType(type_: "GenericTypeType", **context) -> "GenericTypeType":
                     # print("Setted")
             # print("Setting cls.__init__")
             cls.__init__ = NewInit(constructor)
+            if hasattr(cls, "__slots__"):
+                print("cls.__slots__: ", cls.__slots__)
             # print("cls.__init__: ", cls.__init__('S1234567D'))
             # print("Setting cls.__init__ completed")
             # print("cls.__dict__: ", cls.__dict__, " at end of __init_subclass__")
@@ -174,6 +194,9 @@ def NewType(type_: "GenericTypeType", **context) -> "GenericTypeType":
                 init_kwargs = getattr(_value, NEWTYPE_INIT_KWARGS_STR)
             else:
                 init_kwargs = {}
+            print(
+                f"in `BaseNewtype.__init__`, `init_args` = {init_args}; `init_kwargs` = {init_kwargs}"
+            )
             # super(,self)
 
     try:

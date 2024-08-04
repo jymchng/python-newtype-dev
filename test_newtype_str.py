@@ -229,6 +229,7 @@ def test_ethereum_address():
 
 class ZipCode(NewType(str)):
     def __init__(self, val: "str"):
+        super().__init__(val)
         self.__newtype__(val)
 
     @classmethod
@@ -238,6 +239,7 @@ class ZipCode(NewType(str)):
 
 class PhoneNumber(NewType(str)):
     def __init__(self, val: "str"):
+        super().__init__(val)
         self.__newtype__(val)
 
     @classmethod
@@ -247,6 +249,7 @@ class PhoneNumber(NewType(str)):
 
 class SSN(NewType(str)):
     def __init__(self, val: "str"):
+        super().__init__(val)
         self.__newtype__(val)
 
     @classmethod
@@ -256,6 +259,7 @@ class SSN(NewType(str)):
 
 class Email(NewType(str)):
     def __init__(self, val: "str"):
+        super().__init__(val)
         self.__newtype__(val)
 
     @classmethod
