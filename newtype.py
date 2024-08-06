@@ -182,20 +182,8 @@ def NewType(type_: "T", **context) -> "T":
             return inst
 
         def __init__(self, _value, *_args, **_kwargs):
-            # ...
-            # print("BaseNewType.__init__, _value, _args, _kwargs: ", _value, _args, _kwargs)
-            if hasattr(_value, NEWTYPE_INIT_ARGS_STR):
-                init_args = getattr(_value, NEWTYPE_INIT_ARGS_STR)
-            else:
-                init_args = ()
-            if hasattr(_value, NEWTYPE_INIT_KWARGS_STR):
-                init_kwargs = getattr(_value, NEWTYPE_INIT_KWARGS_STR)
-            else:
-                init_kwargs = {}
-            print(
-                f"in `BaseNewtype.__init__`, `init_args` = {init_args}; `init_kwargs` = {init_kwargs}"
-            )
-            # super(,self)
+            ...
+            # we intercept the call to constructors so that we don't accidentally call `object.__init__`
 
     try:
         # we try to store it in a cache, if it fails, no problem either
