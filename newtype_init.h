@@ -3,6 +3,10 @@
 
 #include <Python.h>
 
+// Constants for initialization arguments
+#define NEWTYPE_INIT_ARGS_STR "_newtype_init_args_"
+#define NEWTYPE_INIT_KWARGS_STR "_newtype_init_kwargs_"
+
 // Structure definition for NewInitObject
 typedef struct {
   PyObject_HEAD PyObject *func_get;

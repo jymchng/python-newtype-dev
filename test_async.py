@@ -1,6 +1,6 @@
-
 from newtype import NewType
 import pytest
+
 
 class Super:
     def __init__(self, a, b):
@@ -9,13 +9,13 @@ class Super:
 
     # If a class method is called for a derived class, the derived class
     # object is passed as the implied first argument.
-    
+
     async def get_a(self):
         return self.a
-    
+
     async def get_b(self):
         return self.b
-    
+
     async def return_self(self):
         self.a = 99
         return Super(99, self.b)
@@ -26,6 +26,7 @@ class Derived(NewType(Super)):
         super().__init__(super_inst)
         self.c = c
         self.d = d
+
 
 @pytest.mark.asyncio
 async def test_async():
@@ -41,4 +42,3 @@ async def test_async():
         assert (await derived_one.return_self()).d == 4
     # TODO change this to `assert type(await derived_one.return_self()) is Derived`
     assert type(await derived_one.return_self()) is Super
-    

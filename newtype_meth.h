@@ -2,8 +2,7 @@
 #define NEWTYPEMETHOD_H
 
 #include <Python.h>
-
-
+#include "newtype_init.h"
 
 // Struct for the NewTypeMethod object
 typedef struct {

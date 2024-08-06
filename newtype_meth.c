@@ -8,16 +8,22 @@
 static int NewTypeMethod_init(NewTypeMethodObject *self, PyObject *args,
                               PyObject *kwds) {
   PyObject *func, *wrapped_cls;
+  int is_callable;
   if (!PyArg_ParseTuple(args, "OO", &func, &wrapped_cls))
     return -1;
 
-  if (PyObject_HasAttrString(func, "__get__")) {
+  is_callable = PyCallable_Check(func);
+
+  if (PyObject_HasAttrString(func, "__get__") && is_callable) {
     self->func_get = PyObject_GetAttrString(func, "__get__");
     self->has_get = 1;
-  } else {
+  } else if (is_callable) {
     self->func_get = func;
     Py_INCREF(self->func_get);
     self->has_get = 0;
+  } else {
+    PyErr_SetString(PyExc_TypeError,
+                    "expected first argument to be a callable but it is not");
   }
   if (wrapped_cls == NULL) {
     return -1;
@@ -65,8 +71,8 @@ static PyObject *NewTypeMethod_call(NewTypeMethodObject *self, PyObject *args,
   PyObject *func, *result;
 
   // printf("`self->obj`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(self->obj)));
-  // printf("`self->cls`: %s\n", PyUnicode_AsUTF8(PyObject_Repr((PyObject *)self->cls)));
-
+  // printf("`self->cls`: %s\n", PyUnicode_AsUTF8(PyObject_Repr((PyObject
+  // *)self->cls)));
 
   if (self->has_get) {
     // printf("`self->has_get` = %d\n", self->has_get);
@@ -103,10 +109,10 @@ static PyObject *NewTypeMethod_call(NewTypeMethodObject *self, PyObject *args,
     goto done;
   }
 
-  if (PyObject_TypeCheck(result, self->cls)) {
+  if (self->cls && PyObject_TypeCheck(result, self->cls)) {
     goto done;
   }
-  
+
   // printf("`result` is not an instance of `self->cls`\n");
   if (PyObject_IsInstance(result, self->wrapped_cls)) {
     // printf("`result` is an instance of `self->wrapped_cls`\n");
@@ -166,8 +172,9 @@ static PyObject *NewTypeMethod_call(NewTypeMethodObject *self, PyObject *args,
       PyTuple_SET_ITEM(args_combined, i + 1,
                        item); // `item` is now owned by `args_combined`
     }
-    // printf("`args_combined`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(args_combined)));
-    // printf("`init_kwargs`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(init_kwargs)));
+    // printf("`args_combined`: %s\n",
+    // PyUnicode_AsUTF8(PyObject_Repr(args_combined))); printf("`init_kwargs`:
+    // %s\n", PyUnicode_AsUTF8(PyObject_Repr(init_kwargs)));
 
     // Call the function or constructor
     new_inst = PyObject_Call((PyObject *)self->cls, args_combined, init_kwargs);

@@ -5,6 +5,7 @@
         "newtype_init.h": "c",
         "stddef.h": "c",
         "newtype_meth.h": "c",
-        "python.h": "c"
+        "python.h": "c",
+        "structmember.h": "c"
     }
 }

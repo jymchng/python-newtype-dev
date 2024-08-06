@@ -17,7 +17,7 @@ class NRIC(NewType(str)):
 
     def __init__(self, val: "str", hello):
         super().__init__(val)
-        self.__validate__(val) # valudation
+        self.__validate__(val)  # valudation
         self._prefix = val[0]
         self._suffix = val[-1]
         self._digits = val[1:-1]
@@ -60,9 +60,9 @@ class NRIC(NewType(str)):
             assert alpha_GF[expected_checksum] == nric[8]
 
 
-class GoodManNRIC(NRIC): # inherit from `NRIC` directly, NOT `NewType(NRIC)`
+class GoodManNRIC(NRIC):  # inherit from `NRIC` directly, NOT `NewType(NRIC)`
     def __init__(self, val: "str", hello: "int", bye: "int"):
-        super().__init__(val, hello) # calls NRIC.__init__(self, val, hello)
+        super().__init__(val, hello)  # calls NRIC.__init__(self, val, hello)
         self.bye = bye
 
     @property
@@ -140,7 +140,6 @@ def test_hello_word():
             if isinstance(other, GoodStr):
                 return self.number + other.number
             return self.number + other
-        
 
     hello = GoodStr("hello", 3)
     world = GoodStr(" world!", 5)
@@ -151,14 +150,14 @@ def test_hello_word():
     assert str(hello + world) == "8"
     assert (hello + world) == 8
 
-    bye = hello.replace("hello", world) # replace the `str` in `hello` with the `str`-ness in `world`
+    bye = hello.replace(
+        "hello", world
+    )  # replace the `str` in `hello` with the `str`-ness in `world`
     assert bye.number == 3
     assert world.number == 5
     assert type(bye + world) is int
     assert str(bye + world) == "8"
     assert (bye + world) == 8
-    
-    
 
 
 class BlockchainAddress(NewType(str), ABC):

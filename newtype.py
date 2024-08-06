@@ -6,7 +6,7 @@ __all__: "list[str]" = []
 from typing import TYPE_CHECKING, Protocol
 from weakref import WeakKeyDictionary
 
-from newtypeinit import (NewInit, NEWTYPE_INIT_ARGS_STR, NEWTYPE_INIT_KWARGS_STR)
+from newtypeinit import NewInit, NEWTYPE_INIT_ARGS_STR, NEWTYPE_INIT_KWARGS_STR
 from newtypemethod import NewTypeMethod
 
 NEWTYPE_EXCLUDE_FUNC_STR = "_newtype_exclude_func_"
@@ -106,7 +106,11 @@ def NewType(type_: "T", **context) -> "T":
 
     class BaseNewType(type_):
         if hasattr(type_, "__slots__"):
-            __slots__ = (*getattr(type_, "__slots__"), NEWTYPE_INIT_ARGS_STR, NEWTYPE_INIT_KWARGS_STR)
+            __slots__ = (
+                *getattr(type_, "__slots__"),
+                NEWTYPE_INIT_ARGS_STR,
+                NEWTYPE_INIT_KWARGS_STR,
+            )
 
         def __init_subclass__(cls, **context) -> None:
             super().__init_subclass__(**context)

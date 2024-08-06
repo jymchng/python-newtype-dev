@@ -1,13 +1,9 @@
 #define PY_SSIZE_T_CLEAN
+#include "newtype_init.h"
 #include "newtype_meth.h"
 #include "structmember.h"
 #include <Python.h>
 #include <stddef.h>
-#include "newtype_init.h"
-
-// Constants for initialization arguments
-#define NEWTYPE_INIT_ARGS_STR "_newtype_init_args_"
-#define NEWTYPE_INIT_KWARGS_STR "_newtype_init_kwargs_"
 
 static int NewInit_init(NewInitObject *self, PyObject *args, PyObject *kwds) {
   PyObject *func;
@@ -23,7 +19,6 @@ static int NewInit_init(NewInitObject *self, PyObject *args, PyObject *kwds) {
     self->func_get = func;
     self->has_get = 0;
   }
-
 
   if (PyErr_Occurred()) {
     return -1;
@@ -68,14 +63,19 @@ static PyObject *NewInit_get(NewInitObject *self, PyObject *inst,
   if (self->obj == NULL) {
     // printf("`self->obj` is NULL\n");
     if (self->func_get != NULL) {
-      // printf("`self->func_get`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(self->func_get)));
+      // printf("`self->func_get`: %s\n",
+      // PyUnicode_AsUTF8(PyObject_Repr(self->func_get)));
       if (self->has_get) {
         // printf("`self->has_get`: %d\n", self->has_get);
-        return PyObject_CallFunctionObjArgs(self->func_get, Py_None, self->cls, NULL);
+        return PyObject_CallFunctionObjArgs(self->func_get, Py_None, self->cls,
+                                            NULL);
       }
       return self->func_get;
     }
-    PyErr_SetString(PyExc_TypeError, "`NewTypeMethod` object has no `func_get`; this is an internal C-API error - please report this as an issue to the author on GitHub");
+    PyErr_SetString(
+        PyExc_TypeError,
+        "`NewTypeMethod` object has no `func_get`; this is an internal C-API "
+        "error - please report this as an issue to the author on GitHub");
   }
 
   Py_XINCREF(self);
@@ -86,8 +86,10 @@ static PyObject *NewInit_call(NewInitObject *self, PyObject *args,
                               PyObject *kwds) {
   // printf("NewInit_call is called\n");
 
-  printf("NewInit_call: `self->obj`: %s\n",PyUnicode_AsUTF8(PyObject_Repr(self->obj)));
-  printf("NewInit_call: `self->cls`: %s\n", PyUnicode_AsUTF8(PyObject_Repr((PyObject *)self->cls)));
+  printf("NewInit_call: `self->obj`: %s\n",
+         PyUnicode_AsUTF8(PyObject_Repr(self->obj)));
+  printf("NewInit_call: `self->cls`: %s\n",
+         PyUnicode_AsUTF8(PyObject_Repr((PyObject *)self->cls)));
 
   PyObject *result;
   PyObject *func;
@@ -98,18 +100,20 @@ static PyObject *NewInit_call(NewInitObject *self, PyObject *args,
   //   self->obj = Py_None;
   // }
 
-  
   if (self->has_get) {
     if (self->obj == NULL && self->cls == NULL) {
       // free standing function
-      PyErr_SetString(PyExc_TypeError, "NewInit object has no `obj` or `cls`, it cannot be used to wrap a free standing function; this is an internal C-API error - please report this");
+      PyErr_SetString(PyExc_TypeError,
+                      "NewInit object has no `obj` or `cls`, it cannot be used "
+                      "to wrap a free standing function; this is an internal "
+                      "C-API error - please report this");
       return NULL;
     } else if (self->obj == NULL) {
       func = PyObject_CallFunctionObjArgs(self->func_get, Py_None, self->cls,
-        NULL);
-    } else  {
+                                          NULL);
+    } else {
       func = PyObject_CallFunctionObjArgs(self->func_get, self->obj, self->cls,
-        NULL);
+                                          NULL);
     }
   } else {
     func = self->func_get;
@@ -123,7 +127,7 @@ static PyObject *NewInit_call(NewInitObject *self, PyObject *args,
   if (args_tuple == NULL) {
     return NULL;
   }
-  
+
   if (self->obj &&
       (PyObject_HasAttrString(self->obj, NEWTYPE_INIT_ARGS_STR) != 1)) {
     // printf("Setting `%s` attribute on `%s` to `%s`\n", NEWTYPE_INIT_ARGS_STR,
@@ -225,14 +229,16 @@ PyMODINIT_FUNC PyInit_newtypeinit(void) {
   // #define NEWTYPE_INIT_ARGS_STR "_newtype_init_args_"
   // #define NEWTYPE_INIT_KWARGS_STR "_newtype_init_kwargs_"
 
-  PyObject* PY_NEWTYPE_INIT_KWARGS_STR = PyUnicode_FromString(NEWTYPE_INIT_KWARGS_STR);
+  PyObject *PY_NEWTYPE_INIT_KWARGS_STR =
+      PyUnicode_FromString(NEWTYPE_INIT_KWARGS_STR);
   if (PY_NEWTYPE_INIT_KWARGS_STR == NULL) {
     Py_DECREF(m);
     return NULL;
   }
   PyModule_AddObject(m, "NEWTYPE_INIT_KWARGS_STR", PY_NEWTYPE_INIT_KWARGS_STR);
 
-  PyObject* PY_NEWTYPE_INIT_ARGS_STR = PyUnicode_FromString(NEWTYPE_INIT_ARGS_STR);
+  PyObject *PY_NEWTYPE_INIT_ARGS_STR =
+      PyUnicode_FromString(NEWTYPE_INIT_ARGS_STR);
   if (PY_NEWTYPE_INIT_ARGS_STR == NULL) {
     Py_DECREF(m);
     return NULL;
