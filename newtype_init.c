@@ -1,12 +1,15 @@
 #define PY_SSIZE_T_CLEAN
 #include "newtype_init.h"
-#include "newtype_meth.h"
-#include "structmember.h"
+
 #include <Python.h>
 #include <stddef.h>
 
-static int NewInit_init(NewInitObject *self, PyObject *args, PyObject *kwds) {
-  PyObject *func;
+#include "newtype_meth.h"
+#include "structmember.h"
+
+static int NewInit_init(NewInitObject* self, PyObject* args, PyObject* kwds)
+{
+  PyObject* func;
 
   if (!PyArg_ParseTuple(args, "O", &func)) {
     return -1;
@@ -33,10 +36,12 @@ static int NewInit_init(NewInitObject *self, PyObject *args, PyObject *kwds) {
   return 0;
 }
 
-static PyObject *NewInit_get(NewInitObject *self, PyObject *inst,
-                             PyObject *owner) {
-  Py_XDECREF(self->obj); // Decrease reference to old object
-  Py_XDECREF(self->cls); // Decrease reference to old class
+static PyObject* NewInit_get(NewInitObject* self,
+                             PyObject* inst,
+                             PyObject* owner)
+{
+  Py_XDECREF(self->obj);  // Decrease reference to old object
+  Py_XDECREF(self->cls);  // Decrease reference to old class
   // printf("NewInit_get is called\n");
 
   // Check current values
@@ -51,7 +56,7 @@ static PyObject *NewInit_get(NewInitObject *self, PyObject *inst,
   self->obj = inst;
   Py_XINCREF(self->obj);
   // Py_XINCREF(owner);
-  self->cls = (PyTypeObject *)owner;
+  self->cls = (PyTypeObject*)owner;
   Py_XINCREF(self->cls);
 
   // Print new values
@@ -67,8 +72,8 @@ static PyObject *NewInit_get(NewInitObject *self, PyObject *inst,
       // PyUnicode_AsUTF8(PyObject_Repr(self->func_get)));
       if (self->has_get) {
         // printf("`self->has_get`: %d\n", self->has_get);
-        return PyObject_CallFunctionObjArgs(self->func_get, Py_None, self->cls,
-                                            NULL);
+        return PyObject_CallFunctionObjArgs(
+            self->func_get, Py_None, self->cls, NULL);
       }
       return self->func_get;
     }
@@ -79,21 +84,23 @@ static PyObject *NewInit_get(NewInitObject *self, PyObject *inst,
   }
 
   Py_XINCREF(self);
-  return (PyObject *)self;
+  return (PyObject*)self;
 }
 
-static PyObject *NewInit_call(NewInitObject *self, PyObject *args,
-                              PyObject *kwds) {
+static PyObject* NewInit_call(NewInitObject* self,
+                              PyObject* args,
+                              PyObject* kwds)
+{
   // printf("NewInit_call is called\n");
 
   printf("NewInit_call: `self->obj`: %s\n",
          PyUnicode_AsUTF8(PyObject_Repr(self->obj)));
   printf("NewInit_call: `self->cls`: %s\n",
-         PyUnicode_AsUTF8(PyObject_Repr((PyObject *)self->cls)));
+         PyUnicode_AsUTF8(PyObject_Repr((PyObject*)self->cls)));
 
-  PyObject *result;
-  PyObject *func;
-  PyObject *args_tuple = PyTuple_New(0);
+  PyObject* result;
+  PyObject* func;
+  PyObject* args_tuple = PyTuple_New(0);
 
   // if (self->obj == NULL) {
   //   printf("`self->obj` is NULL\n");
@@ -109,11 +116,11 @@ static PyObject *NewInit_call(NewInitObject *self, PyObject *args,
                       "C-API error - please report this");
       return NULL;
     } else if (self->obj == NULL) {
-      func = PyObject_CallFunctionObjArgs(self->func_get, Py_None, self->cls,
-                                          NULL);
+      func = PyObject_CallFunctionObjArgs(
+          self->func_get, Py_None, self->cls, NULL);
     } else {
-      func = PyObject_CallFunctionObjArgs(self->func_get, self->obj, self->cls,
-                                          NULL);
+      func = PyObject_CallFunctionObjArgs(
+          self->func_get, self->obj, self->cls, NULL);
     }
   } else {
     func = self->func_get;
@@ -128,18 +135,19 @@ static PyObject *NewInit_call(NewInitObject *self, PyObject *args,
     return NULL;
   }
 
-  if (self->obj &&
-      (PyObject_HasAttrString(self->obj, NEWTYPE_INIT_ARGS_STR) != 1)) {
+  if (self->obj
+      && (PyObject_HasAttrString(self->obj, NEWTYPE_INIT_ARGS_STR) != 1))
+  {
     // printf("Setting `%s` attribute on `%s` to `%s`\n", NEWTYPE_INIT_ARGS_STR,
     // PyUnicode_AsUTF8(PyObject_Repr(self->obj)),
     // PyUnicode_AsUTF8(PyObject_Repr(args)));
-    PyObject *args_slice = PyTuple_GetSlice(args, 1, PyTuple_Size(args));
+    PyObject* args_slice = PyTuple_GetSlice(args, 1, PyTuple_Size(args));
     if (args_slice == NULL) {
       Py_DECREF(args_tuple);
       return NULL;
     }
-    if (PyObject_SetAttrString(self->obj, NEWTYPE_INIT_ARGS_STR, args_slice) <
-        0) {
+    if (PyObject_SetAttrString(self->obj, NEWTYPE_INIT_ARGS_STR, args_slice)
+        < 0) {
       Py_DECREF(args_slice);
       Py_DECREF(args_tuple);
       return NULL;
@@ -147,13 +155,14 @@ static PyObject *NewInit_call(NewInitObject *self, PyObject *args,
     Py_DECREF(args_slice);
   }
 
-  if (self->obj &&
-      (PyObject_HasAttrString(self->obj, NEWTYPE_INIT_KWARGS_STR) != 1)) {
+  if (self->obj
+      && (PyObject_HasAttrString(self->obj, NEWTYPE_INIT_KWARGS_STR) != 1))
+  {
     // printf("Setting `%s` attribute on `%s` to `%s`\n", NEWTYPE_INIT_ARGS_STR,
     // PyUnicode_AsUTF8(PyObject_Repr(self->obj)),
     // PyUnicode_AsUTF8(PyObject_Repr(kwds)));
     if (kwds == NULL) {
-      kwds = (PyObject *)PyDict_New();
+      kwds = (PyObject*)PyDict_New();
     }
     if (PyObject_SetAttrString(self->obj, NEWTYPE_INIT_KWARGS_STR, kwds) < 0) {
       Py_DECREF(args_tuple);
@@ -184,12 +193,13 @@ static PyObject *NewInit_call(NewInitObject *self, PyObject *args,
   return result;
 }
 
-static void NewInit_dealloc(NewInitObject *self) {
+static void NewInit_dealloc(NewInitObject* self)
+{
   Py_XDECREF(self->cls);
   Py_XDECREF(self->obj);
   Py_XDECREF(self->func_get);
 
-  Py_TYPE(self)->tp_free((PyObject *)self);
+  Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 static PyMethodDef NewInit_methods[] = {{NULL, NULL, 0, NULL}};
@@ -217,8 +227,9 @@ static struct PyModuleDef newinitmodule = {
     .m_size = -1,
 };
 
-PyMODINIT_FUNC PyInit_newtypeinit(void) {
-  PyObject *m;
+PyMODINIT_FUNC PyInit_newtypeinit(void)
+{
+  PyObject* m;
   if (PyType_Ready(&NewInitType) < 0)
     return NULL;
 
@@ -229,7 +240,7 @@ PyMODINIT_FUNC PyInit_newtypeinit(void) {
   // #define NEWTYPE_INIT_ARGS_STR "_newtype_init_args_"
   // #define NEWTYPE_INIT_KWARGS_STR "_newtype_init_kwargs_"
 
-  PyObject *PY_NEWTYPE_INIT_KWARGS_STR =
+  PyObject* PY_NEWTYPE_INIT_KWARGS_STR =
       PyUnicode_FromString(NEWTYPE_INIT_KWARGS_STR);
   if (PY_NEWTYPE_INIT_KWARGS_STR == NULL) {
     Py_DECREF(m);
@@ -237,7 +248,7 @@ PyMODINIT_FUNC PyInit_newtypeinit(void) {
   }
   PyModule_AddObject(m, "NEWTYPE_INIT_KWARGS_STR", PY_NEWTYPE_INIT_KWARGS_STR);
 
-  PyObject *PY_NEWTYPE_INIT_ARGS_STR =
+  PyObject* PY_NEWTYPE_INIT_ARGS_STR =
       PyUnicode_FromString(NEWTYPE_INIT_ARGS_STR);
   if (PY_NEWTYPE_INIT_ARGS_STR == NULL) {
     Py_DECREF(m);
@@ -246,7 +257,7 @@ PyMODINIT_FUNC PyInit_newtypeinit(void) {
   PyModule_AddObject(m, "NEWTYPE_INIT_ARGS_STR", PY_NEWTYPE_INIT_ARGS_STR);
 
   Py_INCREF(&NewInitType);
-  if (PyModule_AddObject(m, "NewInit", (PyObject *)&NewInitType) < 0) {
+  if (PyModule_AddObject(m, "NewInit", (PyObject*)&NewInitType) < 0) {
     Py_DECREF(&NewInitType);
     Py_DECREF(m);
     return NULL;

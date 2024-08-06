@@ -105,6 +105,8 @@ def test_nric():
     # assert type(NRIC.replace(nric_one, nric_one, ("M5398242L"))) is str
     assert type(NRIC.replace(nric_one, nric_one, ("M5398242L"))) is NRIC
     assert isinstance(NRIC.replace(nric_one, "S1234567D", ("M5398242L")), NRIC)
+    assert NRIC.replace("S1234567D", nric_one, "M5398242L") == "M5398242L"
+    assert type(NRIC.replace("S1234567D", nric_one, "M5398242L")) is str
 
 
 def test_goodmannric():

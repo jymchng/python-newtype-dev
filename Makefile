@@ -3,7 +3,7 @@ SHELL := /bin/bash
 ONESHELL:
 
 ROOT_DIR := $(shell pwd)
-SRC_DIR := $(ROOT_DIR)/simple_python_template
+SRC_DIR := $(ROOT_DIR)
 C_SRC_DIR := $(ROOT_DIR)
 C_INCLUDE_DIR := $(ROOT_DIR)/include
 C_VENDORS_DIR := $(ROOT_DIR)/vendors

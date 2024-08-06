@@ -5,6 +5,9 @@ __all__: "list[str]" = []
 
 from typing import TYPE_CHECKING, Protocol
 from weakref import WeakKeyDictionary
+from logging import getLogger
+
+logger = getLogger("newtype-python")
 
 from newtypeinit import NewInit, NEWTYPE_INIT_ARGS_STR, NEWTYPE_INIT_KWARGS_STR
 from newtypemethod import NewTypeMethod
@@ -22,7 +25,7 @@ if TYPE_CHECKING:
         _kwargs_: "Dict[str, Any]"
 
 
-__GLOBAL_INTERNAL_TYPE_CACHE__: "WeakKeyDictionary[Type, Type]" = WeakKeyDictionary()
+__GLOBAL_INTERNAL_TYPE_CACHE__: "WeakKeyDictionary[T, T]" = WeakKeyDictionary()
 
 
 def newtype_exclude(func):

@@ -1,12 +1,16 @@
 #define PY_SSIZE_T_CLEAN
 #include "newtype_meth.h"
-#include "structmember.h" // Include for PyMemberDef and related macros
+
 #include <Python.h>
 #include <stddef.h>
 
+#include "structmember.h"  // Include for PyMemberDef and related macros
+
 // Method to initialize the NewTypeMethod object
-static int NewTypeMethod_init(NewTypeMethodObject *self, PyObject *args,
-                              PyObject *kwds) {
+static int NewTypeMethod_init(NewTypeMethodObject* self,
+                              PyObject* args,
+                              PyObject* kwds)
+{
   PyObject *func, *wrapped_cls;
   int is_callable;
   if (!PyArg_ParseTuple(args, "OO", &func, &wrapped_cls))
@@ -35,15 +39,17 @@ static int NewTypeMethod_init(NewTypeMethodObject *self, PyObject *args,
 }
 
 // Descriptor __get__ method
-static PyObject *NewTypeMethod_get(NewTypeMethodObject *self, PyObject *inst,
-                                   PyObject *owner) {
-  Py_XDECREF(self->obj); // Decrease reference to old object
-  Py_XDECREF(self->cls); // Decrease reference to old class
+static PyObject* NewTypeMethod_get(NewTypeMethodObject* self,
+                                   PyObject* inst,
+                                   PyObject* owner)
+{
+  Py_XDECREF(self->obj);  // Decrease reference to old object
+  Py_XDECREF(self->cls);  // Decrease reference to old class
 
   self->obj = inst;
-  Py_XINCREF(self->obj); // Increase reference to new object
-  self->cls = (PyTypeObject *)owner;
-  Py_XINCREF(self->cls); // Increase reference to new class
+  Py_XINCREF(self->obj);  // Increase reference to new object
+  self->cls = (PyTypeObject*)owner;
+  Py_XINCREF(self->cls);  // Increase reference to new class
 
   // if (self->obj == NULL) {
   //   // printf("`self->obj` is NULL\n");
@@ -62,12 +68,14 @@ static PyObject *NewTypeMethod_get(NewTypeMethodObject *self, PyObject *inst,
   // }
 
   Py_INCREF(self);
-  return (PyObject *)self;
+  return (PyObject*)self;
 }
 
 // Call method to wrap the function call
-static PyObject *NewTypeMethod_call(NewTypeMethodObject *self, PyObject *args,
-                                    PyObject *kwargs) {
+static PyObject* NewTypeMethod_call(NewTypeMethodObject* self,
+                                    PyObject* args,
+                                    PyObject* kwargs)
+{
   PyObject *func, *result;
 
   // printf("`self->obj`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(self->obj)));
@@ -78,13 +86,13 @@ static PyObject *NewTypeMethod_call(NewTypeMethodObject *self, PyObject *args,
     // printf("`self->has_get` = %d\n", self->has_get);
     if (self->obj == NULL) {
       // printf("`self->obj` is NULL\n");
-      func = PyObject_CallFunctionObjArgs(self->func_get, Py_None,
-                                          self->wrapped_cls, NULL);
+      func = PyObject_CallFunctionObjArgs(
+          self->func_get, Py_None, self->wrapped_cls, NULL);
       // printf("`func`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(func)));
     } else {
       // printf("`self->obj` is not NULL\n");
-      func = PyObject_CallFunctionObjArgs(self->func_get, self->obj,
-                                          self->wrapped_cls, NULL);
+      func = PyObject_CallFunctionObjArgs(
+          self->func_get, self->obj, self->wrapped_cls, NULL);
       // printf("`func`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(func)));
     }
   } else {
@@ -118,33 +126,35 @@ static PyObject *NewTypeMethod_call(NewTypeMethodObject *self, PyObject *args,
     // printf("`result` is an instance of `self->wrapped_cls`\n");
     PyObject *init_args, *init_kwargs;
     if (self->obj == NULL) {
-      PyObject *first_elem;
-      if (PyTuple_Size(args) > 0) { // Got arguments
+      PyObject* first_elem;
+      if (PyTuple_Size(args) > 0) {  // Got arguments
         first_elem = PyTuple_GetItem(args, 0);
         Py_XINCREF(
-            first_elem); // Increment reference count of the first element
-        // Now you have the first element in `first_elem` and the rest of the
-        // elements in `rest_tuple` Do something with `first_elem` and
-        // `rest_tuple`
-      } else { // `self->obj` is NULL, expect at least one `arg` in `args`
-        PyErr_SetString(
-            PyExc_TypeError,
-            "Expected at least one argument, which is the instance object");
+            first_elem);  // Increment reference count of the first element
 
-        return NULL;
+      } else {  // `args` is empty here, then we are done actually
+        goto done;
       };
-      init_args = PyObject_GetAttrString(first_elem, NEWTYPE_INIT_ARGS_STR);
-      init_kwargs = PyObject_GetAttrString(first_elem, NEWTYPE_INIT_KWARGS_STR);
+      if (self->cls == NULL) {
+        goto done;
+      }
+      if (PyObject_IsInstance(first_elem, self->cls)) {
+        init_args = PyObject_GetAttrString(first_elem, NEWTYPE_INIT_ARGS_STR);
+        init_kwargs =
+            PyObject_GetAttrString(first_elem, NEWTYPE_INIT_KWARGS_STR);
+      } else {  // first element is not the subtype, so we are done also
+        goto done;
+      }
       Py_XDECREF(first_elem);
-    } else { // `self->obj` is not NULL
+    } else {  // `self->obj` is not NULL
 
       init_args = PyObject_GetAttrString(self->obj, NEWTYPE_INIT_ARGS_STR);
       init_kwargs = PyObject_GetAttrString(self->obj, NEWTYPE_INIT_KWARGS_STR);
     }
 
-    PyObject *new_inst;
+    PyObject* new_inst;
 
-    PyObject *args_combined;
+    PyObject* args_combined;
     Py_ssize_t args_len = PyTuple_Size(init_args);
     Py_ssize_t combined_args_len = 1 + args_len;
     args_combined = PyTuple_New(combined_args_len);
@@ -152,35 +162,37 @@ static PyObject *NewTypeMethod_call(NewTypeMethodObject *self, PyObject *args,
       Py_XDECREF(init_args);
       Py_XDECREF(init_kwargs);
       Py_DECREF(result);
-      return NULL; // Use return NULL instead of Py_RETURN_NONE
+      return NULL;  // Use return NULL instead of Py_RETURN_NONE
     }
 
     // Set the first item of the new tuple to `result`
-    PyTuple_SET_ITEM(args_combined, 0,
-                     result); // `result` is now owned by `args_combined`
+    PyTuple_SET_ITEM(args_combined,
+                     0,
+                     result);  // `result` is now owned by `args_combined`
 
     // Copy items from `init_args` to `args_combined`
     for (Py_ssize_t i = 0; i < args_len; i++) {
-      PyObject *item = PyTuple_GetItem(init_args, i); // Borrowed reference
+      PyObject* item = PyTuple_GetItem(init_args, i);  // Borrowed reference
       if (item == NULL) {
         Py_DECREF(args_combined);
         Py_XDECREF(init_args);
         Py_XDECREF(init_kwargs);
         return NULL;
       }
-      Py_INCREF(item); // Increase reference count
-      PyTuple_SET_ITEM(args_combined, i + 1,
-                       item); // `item` is now owned by `args_combined`
+      Py_INCREF(item);  // Increase reference count
+      PyTuple_SET_ITEM(args_combined,
+                       i + 1,
+                       item);  // `item` is now owned by `args_combined`
     }
     // printf("`args_combined`: %s\n",
     // PyUnicode_AsUTF8(PyObject_Repr(args_combined))); printf("`init_kwargs`:
     // %s\n", PyUnicode_AsUTF8(PyObject_Repr(init_kwargs)));
 
     // Call the function or constructor
-    new_inst = PyObject_Call((PyObject *)self->cls, args_combined, init_kwargs);
+    new_inst = PyObject_Call((PyObject*)self->cls, args_combined, init_kwargs);
     // printf("`new_inst`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(new_inst)));
     // Clean up
-    Py_DECREF(args_combined); // Decrement reference count of `args_combined`
+    Py_DECREF(args_combined);  // Decrement reference count of `args_combined`
     Py_XDECREF(init_args);
     Py_XDECREF(init_kwargs);
 
@@ -192,6 +204,7 @@ static PyObject *NewTypeMethod_call(NewTypeMethodObject *self, PyObject *args,
   }
 
 done:
+  Py_XINCREF(result);
   return result;
 }
 
@@ -205,12 +218,13 @@ done:
 // };
 
 // Deallocation method
-static void NewTypeMethod_dealloc(NewTypeMethodObject *self) {
+static void NewTypeMethod_dealloc(NewTypeMethodObject* self)
+{
   Py_XDECREF(self->func_get);
   Py_XDECREF(self->wrapped_cls);
   Py_XDECREF(self->obj);
   Py_XDECREF(self->cls);
-  Py_TYPE(self)->tp_free((PyObject *)self);
+  Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 // Method definitions
@@ -219,9 +233,10 @@ static PyMethodDef NewTypeMethod_methods[] = {{NULL, NULL, 0, NULL}};
 // Type definition
 PyTypeObject NewTypeMethodType = {
     PyVarObject_HEAD_INIT(NULL, 0).tp_name = "newtypemethod.NewTypeMethod",
-    .tp_doc = "A descriptor class that wraps around regular methods of a class "
-              "to allow instantiation of the subtype if the method returns an "
-              "instance of the supertype.",
+    .tp_doc =
+        "A descriptor class that wraps around regular methods of a class "
+        "to allow instantiation of the subtype if the method returns an "
+        "instance of the supertype.",
     .tp_basicsize = sizeof(NewTypeMethodObject),
     .tp_itemsize = 0,
     .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
@@ -247,8 +262,9 @@ static struct PyModuleDef newtypemethodmodule = {
 };
 
 // Module initialization function
-PyMODINIT_FUNC PyInit_newtypemethod(void) {
-  PyObject *m;
+PyMODINIT_FUNC PyInit_newtypemethod(void)
+{
+  PyObject* m;
   if (PyType_Ready(&NewTypeMethodType) < 0)
     return NULL;
 
@@ -257,8 +273,8 @@ PyMODINIT_FUNC PyInit_newtypemethod(void) {
     return NULL;
 
   Py_INCREF(&NewTypeMethodType);
-  if (PyModule_AddObject(m, "NewTypeMethod", (PyObject *)&NewTypeMethodType) <
-      0) {
+  if (PyModule_AddObject(m, "NewTypeMethod", (PyObject*)&NewTypeMethodType) < 0)
+  {
     Py_DECREF(&NewTypeMethodType);
     Py_DECREF(m);
     return NULL;
