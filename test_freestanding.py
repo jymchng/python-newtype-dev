@@ -1,8 +1,6 @@
-from newtype import (
-    NewInit,
-    NewTypeMethod,
-)
 import pytest
+
+from newtype import NewInit, NewTypeMethod
 
 
 def free_standing_print(*args, **kwargs):

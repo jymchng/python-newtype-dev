@@ -1,15 +1,11 @@
-from typing import (
-    TYPE_CHECKING,
-)
+from typing import TYPE_CHECKING
 
-from newtype import NewType
 import pytest
 
+from newtype import NewType
+
 if TYPE_CHECKING:
-    from typing import (
-        List,
-        Optional,
-    )
+    from typing import List, Optional
 
 
 class Super:

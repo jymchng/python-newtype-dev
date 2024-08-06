@@ -1,7 +1,6 @@
 import pytest
-from newtype import (
-    NewType,
-)
+
+from newtype import NewType
 
 
 class Base:

@@ -1,7 +1,6 @@
 import pytest
-from newtypemethod import (
-    NewTypeMethod,
-)
+
+from newtypemethod import NewTypeMethod
 
 
 class G:

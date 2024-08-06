@@ -93,10 +93,10 @@ static PyObject* NewInit_call(NewInitObject* self,
 {
   // printf("NewInit_call is called\n");
 
-  printf("NewInit_call: `self->obj`: %s\n",
-         PyUnicode_AsUTF8(PyObject_Repr(self->obj)));
-  printf("NewInit_call: `self->cls`: %s\n",
-         PyUnicode_AsUTF8(PyObject_Repr((PyObject*)self->cls)));
+  // printf("NewInit_call: `self->obj`: %s\n",
+  //        PyUnicode_AsUTF8(PyObject_Repr(self->obj)));
+  // printf("NewInit_call: `self->cls`: %s\n",
+  //        PyUnicode_AsUTF8(PyObject_Repr((PyObject*)self->cls)));
 
   PyObject* result;
   PyObject* func;
@@ -127,10 +127,10 @@ static PyObject* NewInit_call(NewInitObject* self,
   }
 
   if (func == NULL) {
-    printf("`func` is NULL\n");
+    // printf("`func` is NULL\n");
     return NULL;
   }
-  printf("`func`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(func)));
+  // printf("`func`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(func)));
   if (args_tuple == NULL) {
     return NULL;
   }
@@ -170,8 +170,8 @@ static PyObject* NewInit_call(NewInitObject* self,
     }
   }
 
-  printf("`args`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(args)));
-  printf("`kwds`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(kwds)));
+  // printf("`args`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(args)));
+  // printf("`kwds`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(kwds)));
 
   // Ensure `self->cls` is a valid type object
   if (self->cls && PyType_Check(self->cls)) {
@@ -180,7 +180,7 @@ static PyObject* NewInit_call(NewInitObject* self,
     PyErr_SetString(PyExc_TypeError, "Invalid type object in descriptor");
     result = NULL;
   }
-  printf("`result`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(result)));
+  // printf("`result`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(result)));
 
   if (PyErr_Occurred()) {
     Py_DECREF(args_tuple);

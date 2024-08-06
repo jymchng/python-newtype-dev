@@ -1,15 +1,19 @@
+import logging
 import re
-from abc import (
-    ABC,
-    abstractmethod,
-)
+import sys
+from abc import ABC, abstractmethod
+from logging import getLogger
 
 import pytest
 
-from newtype import (
-    NewType,
-    newtype_exclude,
+from newtype import NewType, newtype_exclude
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s %(levelname)-8s [%(filename)s:%(lineno)s] %(message)s",
+    stream=sys.stdout,
 )
+LOGGER = getLogger("NEWTYPE_TEST_LOGGER")
 
 
 class NRIC(NewType(str)):
@@ -95,10 +99,10 @@ def test_nric():
     with pytest.raises(AssertionError):  # noqa: B017
         nric_one = nric_one + "1234567"
 
-    # print("str.replace('hello', 'hello', 'hi'): ", str.replace("hello", "hello", "hi"))
-    # print("str.replace.__get__: ", str.replace.__get__)
-    # print("str.replace.__get__(None, str): ", str.replace.__get__(None, str))
-    # print("str.replace: ", str.replace)
+    # LOGGER.debug("str.replace('hello', 'hello', 'hi'): ", str.replace("hello", "hello", "hi"))
+    # LOGGER.debug("str.replace.__get__: ", str.replace.__get__)
+    # LOGGER.debug("str.replace.__get__(None, str): ", str.replace.__get__(None, str))
+    # LOGGER.debug("str.replace: ", str.replace)
 
     assert NRIC.replace == NRIC.replace
     assert NRIC.replace(nric_one, nric_one, ("M5398242L")) == "M5398242L"
@@ -138,7 +142,7 @@ def test_hello_word():
 
         # overriding is possible
         def __add__(self, other):
-            # print("__add__ is called!")
+            # LOGGER.debug("__add__ is called!")
             if isinstance(other, GoodStr):
                 return self.number + other.number
             return self.number + other

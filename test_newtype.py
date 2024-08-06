@@ -1,13 +1,9 @@
-from typing import (
-    TYPE_CHECKING,
-)
+from typing import TYPE_CHECKING
 
 import pandas as pd
 import pytest
 
-from newtype import (
-    NewType,
-)
+from newtype import NewType
 
 if TYPE_CHECKING:
     pass

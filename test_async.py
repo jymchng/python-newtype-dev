@@ -1,5 +1,6 @@
-from newtype import NewType
 import pytest
+
+from newtype import NewType
 
 
 class Super:
