@@ -2,6 +2,7 @@ import pytest
 
 from newtype import NewType
 
+from conftest import limit_leaks, LEAK_LIMIT
 
 class Base:
     __slots__ = ["name"]
@@ -17,7 +18,7 @@ class Derived(NewType(Base)):
         super().__init__(base)
         self.age = age
 
-
+@limit_leaks(LEAK_LIMIT)
 def test_base_slots():
     base = Base("TestName")
     assert base.name == "TestName"
@@ -26,6 +27,7 @@ def test_base_slots():
         base.age = 30  # Should raise an error since 'age' is not a defined slot
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_derived_slots():
     derived = Derived(Base("TestName"), 25)
     assert derived.name == "TestName"
@@ -37,6 +39,7 @@ def test_derived_slots():
         )
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_slots_inheritance():
     base = Base("BaseName")
     derived = Derived(base, 30)

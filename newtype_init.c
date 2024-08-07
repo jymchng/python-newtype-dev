@@ -100,7 +100,7 @@ static PyObject* NewInit_call(NewInitObject* self,
 
   PyObject* result;
   PyObject* func;
-  PyObject* args_tuple = PyTuple_New(0);
+  // PyObject* args_tuple = PyTuple_New(0);
 
   // if (self->obj == NULL) {
   //   printf("`self->obj` is NULL\n");
@@ -111,9 +111,8 @@ static PyObject* NewInit_call(NewInitObject* self,
     if (self->obj == NULL && self->cls == NULL) {
       // free standing function
       PyErr_SetString(PyExc_TypeError,
-                      "NewInit object has no `obj` or `cls`, it cannot be used "
-                      "to wrap a free standing function; this is an internal "
-                      "C-API error - please report this");
+                      "`NewInit` object has no `obj` (internal attribute) or `cls` (internal attribute)," 
+                      "it cannot be used to wrap a free standing function");
       return NULL;
     } else if (self->obj == NULL) {
       func = PyObject_CallFunctionObjArgs(
@@ -131,9 +130,9 @@ static PyObject* NewInit_call(NewInitObject* self,
     return NULL;
   }
   // printf("`func`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(func)));
-  if (args_tuple == NULL) {
-    return NULL;
-  }
+  // if (args_tuple == NULL) {
+  //   return NULL;
+  // }
 
   if (self->obj
       && (PyObject_HasAttrString(self->obj, NEWTYPE_INIT_ARGS_STR) != 1))
@@ -143,13 +142,13 @@ static PyObject* NewInit_call(NewInitObject* self,
     // PyUnicode_AsUTF8(PyObject_Repr(args)));
     PyObject* args_slice = PyTuple_GetSlice(args, 1, PyTuple_Size(args));
     if (args_slice == NULL) {
-      Py_DECREF(args_tuple);
+      // Py_DECREF(args_tuple);
       return NULL;
     }
     if (PyObject_SetAttrString(self->obj, NEWTYPE_INIT_ARGS_STR, args_slice)
         < 0) {
       Py_DECREF(args_slice);
-      Py_DECREF(args_tuple);
+      // Py_DECREF(args_tuple);
       return NULL;
     }
     Py_DECREF(args_slice);
@@ -165,7 +164,7 @@ static PyObject* NewInit_call(NewInitObject* self,
       kwds = (PyObject*)PyDict_New();
     }
     if (PyObject_SetAttrString(self->obj, NEWTYPE_INIT_KWARGS_STR, kwds) < 0) {
-      Py_DECREF(args_tuple);
+      // Py_DECREF(args_tuple);
       return NULL;
     }
   }
@@ -183,11 +182,11 @@ static PyObject* NewInit_call(NewInitObject* self,
   // printf("`result`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(result)));
 
   if (PyErr_Occurred()) {
-    Py_DECREF(args_tuple);
+    // Py_DECREF(args_tuple);
     return NULL;
   }
 
-  Py_DECREF(args_tuple);
+  // Py_DECREF(args_tuple);
   Py_DECREF(func);
   // printf("`result`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(result)));
   return result;

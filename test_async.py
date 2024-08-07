@@ -2,6 +2,8 @@ import pytest
 
 from newtype import NewType
 
+from conftest import LEAK_LIMIT, limit_leaks
+
 
 class Super:
     def __init__(self, a, b):
@@ -21,7 +23,6 @@ class Super:
         self.a = 99
         return Super(99, self.b)
 
-
 class Derived(NewType(Super)):
     def __init__(self, super_inst, c, d):
         super().__init__(super_inst)
@@ -29,6 +30,7 @@ class Derived(NewType(Super)):
         self.d = d
 
 
+@limit_leaks(LEAK_LIMIT)
 @pytest.mark.asyncio
 async def test_async():
     super_one = Super(1, 2)

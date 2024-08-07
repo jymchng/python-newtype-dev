@@ -5,6 +5,8 @@ import pytest
 
 from newtype import NewType
 
+from conftest import limit_leaks, LEAK_LIMIT
+
 if TYPE_CHECKING:
     pass
 
@@ -30,6 +32,7 @@ class PositiveInt(NewType(int)):
         yield cls.__newtype__
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_positive_int():
     five = PositiveInt(5, hello=3, bye=2, hey=1, you=29)
     assert five == 5
@@ -59,6 +62,7 @@ class BoundedPositiveInt(PositiveInt):
         return (self.upper + self.lower) / 2
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_bounded_positive_int():
     ten = BoundedPositiveInt(10, 20, 2, 1, 2, 3, hello=3, bye=4)
 
@@ -101,6 +105,7 @@ class MyDataFrame(NewType(pd.DataFrame)):
         assert df.shape == (2, 2)
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_my_dataframe():
     df = pd.DataFrame({"A": [1, 2], "B": [4, 5]})
     my_df = MyDataFrame(df, 1, 2, 3)

@@ -1,6 +1,13 @@
+# `limit_leaks` copied from https://github.com/ZeroIntensity/pyawaitable/blob/master/tests/test_awaitable.py
+
 from typing import TYPE_CHECKING
 
 import pytest
+from conftest import (
+    limit_leaks,
+    LEAK_LIMIT,
+    LOGGER,
+)
 
 from newtype import NewType
 
@@ -42,7 +49,7 @@ class Employee:
     age: int
 
     def __init__(self, name: str, age: int):
-        print("Employee.__init__")
+        # LOGGER.debug("Employee.__init__")
         self.name = name
         self.age = age
 
@@ -98,10 +105,10 @@ class Manager(BaseNewTypeEmployee):
     def __init__(
         self, employee: Employee, employees: "Optional[List[Employee]]" = None
     ):
-        print("Manager.__init__")
-        print("employee: ", employee)
-        print("employees: ", employees)
-        print(super().__init__)
+        # LOGGER.debug("Manager.__init__")
+        # LOGGER.debug("employee: ", employee)
+        # LOGGER.debug("employees: ", employees)
+        # LOGGER.debug(super().__init__)
         super().__init__(employee)
         self.employees = employees or []
 
@@ -116,7 +123,7 @@ class Manager(BaseNewTypeEmployee):
         assert name == self.name
         return f"Manager<{name}>"
 
-
+@limit_leaks(LEAK_LIMIT)
 def test_manager():
     employee_one = Employee("John", 35)
     employee_two = Employee("Jim", 33)
@@ -161,6 +168,7 @@ def test_manager():
     assert manager_from_dict.get_employees() == 37
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_manager_employees():
     employee_one = Employee("Peter", 22)
     employee_two = Employee("John", 23)

@@ -2,6 +2,8 @@ import pytest
 
 from newtypemethod import NewTypeMethod
 
+from conftest import limit_leaks, LEAK_LIMIT
+
 
 class G:
     def __init__(self, val):
@@ -13,10 +15,9 @@ class G:
     add_one = NewTypeMethod(add_one, int)
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_new_type_method():
     g = G(5)
-    # assert g.add_one.obj == g
-    # assert g.add_one.cls == G
 
     assert g.add_one() is None
 

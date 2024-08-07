@@ -2,3 +2,5 @@ pandas>=2
 pytest>=3.2
 setuptools>=72.1.0
 pytest-asyncio
+pytest-memray
+typing_extensions

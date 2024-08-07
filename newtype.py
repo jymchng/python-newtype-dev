@@ -6,7 +6,7 @@ __all__: "list[str]" = []
 import logging
 import sys
 from logging import getLogger
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING
 from weakref import WeakKeyDictionary
 
 NEWTYPE_LOGGER = getLogger("newtype-python")

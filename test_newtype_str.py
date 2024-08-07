@@ -5,15 +5,11 @@ from abc import ABC, abstractmethod
 from logging import getLogger
 
 import pytest
+from conftest import LEAK_LIMIT, limit_leaks
 
 from newtype import NewType, newtype_exclude
 
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s %(levelname)-8s [%(filename)s:%(lineno)s] %(message)s",
-    stream=sys.stdout,
-)
-LOGGER = getLogger("NEWTYPE_TEST_LOGGER")
+
 
 
 class NRIC(NewType(str)):
@@ -74,6 +70,7 @@ class GoodManNRIC(NRIC):  # inherit from `NRIC` directly, NOT `NewType(NRIC)`
         return self._prefix
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_nric():
     nric_minus_one = NRIC("S1234567D", 55)
     assert NRIC.__init__(nric_minus_one, "S1234567D", 1) is None
@@ -113,6 +110,7 @@ def test_nric():
     assert type(NRIC.replace("S1234567D", nric_one, "M5398242L")) is str
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_goodmannric():
     nric_one = GoodManNRIC("S1234567D", 69, 96)
     GoodManNRIC("M5398242L", 23, 69)
@@ -134,6 +132,7 @@ def test_goodmannric():
         nric_one = nric_one + "1234567"
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_hello_word():
     class GoodStr(NewType(str)):
         def __init__(self, value: "str", number):
@@ -275,96 +274,115 @@ class Email(NewType(str)):
         assert re.match(r"^[^@]+@[^@]+\.[^@]+$", val), f"Invalid Email: {val}"
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_zipcode_valid():
     zip_code = ZipCode("12345")
     assert zip_code == "12345"
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_zipcode_invalid():
     with pytest.raises(AssertionError):
         ZipCode("1234")
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_zipcode_valid_extended():
     zip_code = ZipCode("12345-6789")
     assert zip_code == "12345-6789"
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_zipcode_invalid_extended():
     with pytest.raises(AssertionError):
         ZipCode("12345-678")
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_phonenumber_valid():
     phone_number = PhoneNumber("+12345678901")
     assert phone_number == "+12345678901"
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_phonenumber_invalid():
     with pytest.raises(AssertionError):
         PhoneNumber("12345")
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_ssn_valid():
     ssn = SSN("123-45-6789")
     assert ssn == "123-45-6789"
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_ssn_invalid():
     with pytest.raises(AssertionError):
         SSN("123-456-789")
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_email_valid():
     email = Email("test@example.com")
     assert email == "test@example.com"
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_email_invalid():
     with pytest.raises(AssertionError):
         Email("test@example")
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_email_no_domain():
     with pytest.raises(AssertionError):
         Email("test@")
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_email_no_username():
     with pytest.raises(AssertionError):
         Email("@example.com")
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_email_special_characters():
     email = Email("test+alias@example.com")
     assert email == "test+alias@example.com"
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_phonenumber_valid_no_country_code():
     phone_number = PhoneNumber("1234567890")
     assert phone_number == "1234567890"
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_phonenumber_valid_with_country_code():
     phone_number = PhoneNumber("11234567890")
     assert phone_number == "11234567890"
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_zipcode_invalid_characters():
     with pytest.raises(AssertionError):
         ZipCode("1234A")
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_ssn_invalid_characters():
     with pytest.raises(AssertionError):
         SSN("123-AB-6789")
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_email_subdomain():
     email = Email("user@mail.example.com")
     assert email == "user@mail.example.com"
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_zipcode_upper():
     zip_code = ZipCode("12345")
     upper_zip_code = zip_code.upper()
@@ -372,6 +390,7 @@ def test_zipcode_upper():
     assert upper_zip_code == "12345"
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_zipcode_replace():
     zip_code = ZipCode("12345-6789")
     replaced_zip_code = zip_code.replace("9", "0")
@@ -379,6 +398,7 @@ def test_zipcode_replace():
     assert replaced_zip_code == "12345-6780"
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_phonenumber_upper():
     phone_number = PhoneNumber("+12345678901")
     upper_phone_number = phone_number.upper()
@@ -386,6 +406,7 @@ def test_phonenumber_upper():
     assert upper_phone_number == "+12345678901"
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_phonenumber_replace():
     phone_number = PhoneNumber("+12345678901")
     replaced_phone_number = phone_number.replace("+", "00")
@@ -393,6 +414,7 @@ def test_phonenumber_replace():
     assert replaced_phone_number == "0012345678901"
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_ssn_upper():
     ssn = SSN("123-45-6789")
     upper_ssn = ssn.upper()
@@ -400,6 +422,7 @@ def test_ssn_upper():
     assert upper_ssn == "123-45-6789"
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_ssn_replace():
     ssn = SSN("111-45-6189")
     replaced_ssn = ssn.replace("1", "2", 2)
@@ -407,6 +430,7 @@ def test_ssn_replace():
     assert replaced_ssn == "221-45-6189"
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_email_upper():
     email = Email("test@example.com")
     upper_email = email.upper()
@@ -414,6 +438,7 @@ def test_email_upper():
     assert upper_email == "TEST@EXAMPLE.COM"
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_email_replace():
     email = Email("test+alias@example.com")
     replaced_email = email.replace("+alias", "")
@@ -421,26 +446,31 @@ def test_email_replace():
     assert replaced_email == "test@example.com"
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_zipcode_isnumeric():
     zip_code = ZipCode("12345")
     assert zip_code.isnumeric()
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_phonenumber_isnumeric():
     phone_number = PhoneNumber("1234567890")
     assert phone_number.isnumeric()
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_ssn_isalnum():
     ssn = SSN("123-45-6789")
     assert not ssn.isalnum()
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_email_isalnum():
     email = Email("test@example.com")
     assert not email.isalnum()
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_phonenumber_strip():
     phone_number = " +12345678901 "
     with pytest.raises(AssertionError):
@@ -449,6 +479,7 @@ def test_phonenumber_strip():
     assert isinstance(stripped_phone_number, str)
     assert isinstance(stripped_phone_number, PhoneNumber)
     assert stripped_phone_number == "+12345678901"
+@limit_leaks(LEAK_LIMIT)
 
 
 def test_ssn_strip():
@@ -461,6 +492,7 @@ def test_ssn_strip():
     assert stripped_ssn == "123-45-6789"
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_email_strip():
     email = Email(" test@example.com ")
     stripped_email = email.strip()
@@ -468,6 +500,7 @@ def test_email_strip():
     assert stripped_email == "test@example.com"
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_email_lower():
     email = Email("TEST@EXAMPLE.COM")
     lower_email = email.lower()
@@ -475,6 +508,7 @@ def test_email_lower():
     assert lower_email == "test@example.com"
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_ssn_partition():
     ssn = SSN("123-45-6789")
     head, sep, tail = ssn.partition("-")
@@ -512,6 +546,7 @@ class LicensePlate(CustomString):
 
 
 # Tests
+@limit_leaks(LEAK_LIMIT)
 def test_serial_number_attributes():
     serial = SerialNumber("SN12345", "arg1", "arg2", country="USA", year=2021)
     assert serial == "SN12345"
@@ -529,6 +564,7 @@ def test_serial_number_attributes():
     assert replaced_serial.year == 2021
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_passport_number_attributes():
     passport = PassportNumber("P12345678", "argA", country="Canada", issued_year=2020)
     assert passport == "P12345678"
@@ -546,6 +582,7 @@ def test_passport_number_attributes():
     assert upper_passport.issued_year == 2020
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_license_plate_attributes():
     license_plate = LicensePlate(
         "AB123CD", "argX", "argY", region="EU", valid_until=2025
@@ -565,6 +602,7 @@ def test_license_plate_attributes():
     assert stripped_license_plate.valid_until == 2025
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_serial_number_methods():
     serial = SerialNumber("SN98765", "arg1", "arg2", company="TechCorp", batch=42)
     assert serial == "SN98765"
@@ -582,6 +620,7 @@ def test_serial_number_methods():
     assert serial_upper.batch == 42
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_passport_number_methods():
     passport = PassportNumber(
         "P987654321", "argB", issued_country="India", expiration_year=2030
@@ -604,6 +643,7 @@ def test_passport_number_methods():
     assert replaced_passport.expiration_year == 2030
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_license_plate_methods():
     license_plate = LicensePlate("XY789ZT", "argM", region="AS", registration_year=2022)
     assert license_plate == "XY789ZT"
@@ -621,6 +661,7 @@ def test_license_plate_methods():
     assert lower_license_plate.registration_year == 2022
 
 
+@limit_leaks(LEAK_LIMIT)
 def test_custom_method():
     custom_str = CustomString("Hello", extra="data")
     assert custom_str.custom_method() == "CustomString: Hello"
