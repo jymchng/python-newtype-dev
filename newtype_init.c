@@ -169,8 +169,11 @@ static PyObject* NewInit_call(NewInitObject* self,
     // printf("Setting `%s` attribute on `%s` to `%s`\n", NEWTYPE_INIT_ARGS_STR,
     // PyUnicode_AsUTF8(PyObject_Repr(self->obj)),
     // PyUnicode_AsUTF8(PyObject_Repr(kwds)));
-    if (kwds == NULL) {
+    if (kwds == NULL) {  // `kwds` is `NULL`, first time the constructor is
+                         // called, so we make a new `dict`.
       kwds = PyDict_New();
+    } else {  // `kwds` is borrowed here, so we increase its ref count
+      Py_INCREF(kwds);
     }
     if (PyObject_SetAttrString(self->obj, NEWTYPE_INIT_KWARGS_STR, kwds) < 0) {
       // Py_DECREF(args_tuple);
@@ -201,6 +204,7 @@ static PyObject* NewInit_call(NewInitObject* self,
 // printf("`result`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(result)));
 done:
   Py_XDECREF(func);
+  Py_XDECREF(kwds);
   return result;
 }
 

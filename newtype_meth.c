@@ -138,7 +138,7 @@ static PyObject* NewTypeMethod_call(NewTypeMethodObject* self,
       if (self->cls == NULL) {
         goto done;
       }
-      if (PyObject_IsInstance(first_elem, self->cls)) {
+      if (PyObject_IsInstance(first_elem, (PyObject*)self->cls)) {
         init_args = PyObject_GetAttrString(first_elem, NEWTYPE_INIT_ARGS_STR);
         init_kwargs =
             PyObject_GetAttrString(first_elem, NEWTYPE_INIT_KWARGS_STR);
