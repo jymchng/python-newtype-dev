@@ -10,8 +10,6 @@ from conftest import LEAK_LIMIT, limit_leaks
 from newtype import NewType, newtype_exclude
 
 
-
-
 class NRIC(NewType(str)):
     country: "str" = "SG"
 
@@ -479,9 +477,9 @@ def test_phonenumber_strip():
     assert isinstance(stripped_phone_number, str)
     assert isinstance(stripped_phone_number, PhoneNumber)
     assert stripped_phone_number == "+12345678901"
+
+
 @limit_leaks(LEAK_LIMIT)
-
-
 def test_ssn_strip():
     ssn = " 123-45-6789 "
     with pytest.raises(AssertionError):

@@ -4,6 +4,7 @@ from newtype import NewType
 
 from conftest import limit_leaks, LEAK_LIMIT
 
+
 class Base:
     __slots__ = ["name"]
 
@@ -17,6 +18,7 @@ class Derived(NewType(Base)):
     def __init__(self, base, age):
         super().__init__(base)
         self.age = age
+
 
 @limit_leaks(LEAK_LIMIT)
 def test_base_slots():

@@ -18,7 +18,13 @@ class G(NewType(str)):
 
 @limit_leaks(LEAK_LIMIT)
 def test_new_init_method():
-    g = G(5, 1, 2, 3)
+    init_num = 5
+
+    g = G(init_num, 1, 2, 3)
 
     assert getattr(g, NEWTYPE_INIT_ARGS_STR) == (1, 2, 3)
     assert getattr(g, NEWTYPE_INIT_KWARGS_STR) == {}
+
+    for i in range(100):
+        g.add_one()
+        assert g.val == init_num + i + 1

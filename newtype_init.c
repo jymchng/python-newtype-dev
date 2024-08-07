@@ -98,7 +98,7 @@ static PyObject* NewInit_call(NewInitObject* self,
   // printf("NewInit_call: `self->cls`: %s\n",
   //        PyUnicode_AsUTF8(PyObject_Repr((PyObject*)self->cls)));
 
-  PyObject* result; // return this
+  PyObject* result;  // return this
   PyObject* func;
   // PyObject* args_tuple = PyTuple_New(0);
 
@@ -111,9 +111,10 @@ static PyObject* NewInit_call(NewInitObject* self,
     if (self->obj == NULL && self->cls == NULL) {
       // free standing function
       PyErr_SetString(PyExc_TypeError,
-                      "`NewInit` object has no `obj` (internal attribute) or `cls` (internal attribute)," 
+                      "`NewInit` object has no `obj` (internal attribute) or "
+                      "`cls` (internal attribute),"
                       "it cannot be used to wrap a free standing function");
-      return NULL; // allocated nothing so no need to free
+      return NULL;  // allocated nothing so no need to free
     } else if (self->obj == NULL) {
       func = PyObject_CallFunctionObjArgs(
           self->func_get, Py_None, self->cls, NULL);
@@ -153,13 +154,13 @@ static PyObject* NewInit_call(NewInitObject* self,
       args_slice = PyTuple_New(0);
     }
     if (PyObject_SetAttrString(self->obj, NEWTYPE_INIT_ARGS_STR, args_slice)
-          < 0) {
-        Py_DECREF(args_slice);
-        // Py_DECREF(args_tuple);
-        result = NULL;
-        goto done;
-      }
-      Py_XDECREF(args_slice);
+        < 0) {
+      Py_DECREF(args_slice);
+      // Py_DECREF(args_tuple);
+      result = NULL;
+      goto done;
+    }
+    Py_XDECREF(args_slice);
   }
 
   if (self->obj
@@ -195,12 +196,12 @@ static PyObject* NewInit_call(NewInitObject* self,
     goto done;
   }
 
-  // Py_DECREF(args_tuple);
-  // Py_DECREF(func);
-  // printf("`result`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(result)));
-  done:
-    Py_XDECREF(func);
-    return result;
+// Py_DECREF(args_tuple);
+// Py_DECREF(func);
+// printf("`result`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(result)));
+done:
+  Py_XDECREF(func);
+  return result;
 }
 
 static void NewInit_dealloc(NewInitObject* self)
@@ -246,9 +247,6 @@ PyMODINIT_FUNC PyInit_newtypeinit(void)
   m = PyModule_Create(&newinitmodule);
   if (m == NULL)
     return NULL;
-
-  // #define NEWTYPE_INIT_ARGS_STR "_newtype_init_args_"
-  // #define NEWTYPE_INIT_KWARGS_STR "_newtype_init_kwargs_"
 
   PyObject* PY_NEWTYPE_INIT_KWARGS_STR =
       PyUnicode_FromString(NEWTYPE_INIT_KWARGS_STR);

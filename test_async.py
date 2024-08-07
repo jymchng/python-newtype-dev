@@ -23,6 +23,7 @@ class Super:
         self.a = 99
         return Super(99, self.b)
 
+
 class Derived(NewType(Super)):
     def __init__(self, super_inst, c, d):
         super().__init__(super_inst)

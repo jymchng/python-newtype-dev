@@ -123,6 +123,7 @@ class Manager(BaseNewTypeEmployee):
         assert name == self.name
         return f"Manager<{name}>"
 
+
 @limit_leaks(LEAK_LIMIT)
 def test_manager():
     employee_one = Employee("John", 35)

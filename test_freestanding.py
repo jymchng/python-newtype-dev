@@ -3,6 +3,7 @@ from conftest import limit_leaks, LEAK_LIMIT
 
 from newtype import NewInit, NewTypeMethod
 
+
 @limit_leaks(LEAK_LIMIT)
 def free_standing_print(*args, **kwargs):
     print(*args, **kwargs)
