@@ -15,6 +15,7 @@ class PositiveInt(NewType(int)):
     is_positive = True
 
     def __init__(self, val: "int", **kwargs):
+        super().__init__(val)
         self.__newtype__(val)
 
         for k, v in kwargs.items():
@@ -115,7 +116,6 @@ def test_my_dataframe():
     assert my_df.c == 3
 
     my_df = my_df.T
-    print("my_df", my_df, type(my_df))
 
     assert my_df.a == 1
     assert my_df.b == 2

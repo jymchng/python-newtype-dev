@@ -27,6 +27,16 @@ test-all:
 	rm -f newtypeinit.cpython-310-x86_64-linux-gnu.so && \
 	python -m setup build_ext --inplace && python -m pytest . -s -vv
 
+
+test-leak:
+	python -m setup clean && \
+	rm -f newtypemethod.cpython-310-x86_64-linux-gnu.so && \
+	rm -f newtypeinit.cpython-310-x86_64-linux-gnu.so && \
+	python -m setup build_ext --inplace && pytest --enable-leak-tracking -W error --stacks 10 \
+	test_newtype_init.py \
+	test_newtype_meth.py \
+	test_custom_type.py -vv -s
+
 format:
 	@if [ -d $(SRC_DIR)/$(FIRST_ARGUMENT) ]; then \
 		ruff format $(SRC_DIR)/$(FIRST_ARGUMENT); \

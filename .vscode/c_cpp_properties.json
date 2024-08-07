@@ -4,7 +4,7 @@
         "name": "Linux",
         "includePath": [
           "${fileDirname}/../**",
-          "/usr/include/python3.10/**"
+          "~/.pyenv/versions/3.8.19/include/python3.8"
         ],
         "defines": [
           "_DEBUG",
