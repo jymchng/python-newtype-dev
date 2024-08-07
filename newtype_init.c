@@ -98,7 +98,7 @@ static PyObject* NewInit_call(NewInitObject* self,
   // printf("NewInit_call: `self->cls`: %s\n",
   //        PyUnicode_AsUTF8(PyObject_Repr((PyObject*)self->cls)));
 
-  PyObject* result;
+  PyObject* result; // return this
   PyObject* func;
   // PyObject* args_tuple = PyTuple_New(0);
 
@@ -113,7 +113,7 @@ static PyObject* NewInit_call(NewInitObject* self,
       PyErr_SetString(PyExc_TypeError,
                       "`NewInit` object has no `obj` (internal attribute) or `cls` (internal attribute)," 
                       "it cannot be used to wrap a free standing function");
-      return NULL;
+      return NULL; // allocated nothing so no need to free
     } else if (self->obj == NULL) {
       func = PyObject_CallFunctionObjArgs(
           self->func_get, Py_None, self->cls, NULL);
@@ -127,8 +127,10 @@ static PyObject* NewInit_call(NewInitObject* self,
 
   if (func == NULL) {
     // printf("`func` is NULL\n");
-    return NULL;
+    result = NULL;
+    goto done;
   }
+  // `func` is definitely allocated here; need to `Py_XDECREF(func);`
   // printf("`func`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(func)));
   // if (args_tuple == NULL) {
   //   return NULL;
@@ -140,18 +142,24 @@ static PyObject* NewInit_call(NewInitObject* self,
     // printf("Setting `%s` attribute on `%s` to `%s`\n", NEWTYPE_INIT_ARGS_STR,
     // PyUnicode_AsUTF8(PyObject_Repr(self->obj)),
     // PyUnicode_AsUTF8(PyObject_Repr(args)));
-    PyObject* args_slice = PyTuple_GetSlice(args, 1, PyTuple_Size(args));
-    if (args_slice == NULL) {
-      // Py_DECREF(args_tuple);
-      return NULL;
+    PyObject* args_slice;
+    if (PyTuple_Size(args) > 1) {
+      args_slice = PyTuple_GetSlice(args, 1, PyTuple_Size(args));
+      if (args_slice == NULL) {
+        // Py_DECREF(args_tuple);
+        return NULL;
+      }
+    } else {
+      args_slice = PyTuple_New(0);
     }
     if (PyObject_SetAttrString(self->obj, NEWTYPE_INIT_ARGS_STR, args_slice)
-        < 0) {
-      Py_DECREF(args_slice);
-      // Py_DECREF(args_tuple);
-      return NULL;
-    }
-    Py_DECREF(args_slice);
+          < 0) {
+        Py_DECREF(args_slice);
+        // Py_DECREF(args_tuple);
+        result = NULL;
+        goto done;
+      }
+      Py_XDECREF(args_slice);
   }
 
   if (self->obj
@@ -161,11 +169,12 @@ static PyObject* NewInit_call(NewInitObject* self,
     // PyUnicode_AsUTF8(PyObject_Repr(self->obj)),
     // PyUnicode_AsUTF8(PyObject_Repr(kwds)));
     if (kwds == NULL) {
-      kwds = (PyObject*)PyDict_New();
+      kwds = PyDict_New();
     }
     if (PyObject_SetAttrString(self->obj, NEWTYPE_INIT_KWARGS_STR, kwds) < 0) {
       // Py_DECREF(args_tuple);
-      return NULL;
+      result = NULL;
+      goto done;
     }
   }
 
@@ -183,13 +192,15 @@ static PyObject* NewInit_call(NewInitObject* self,
 
   if (PyErr_Occurred()) {
     // Py_DECREF(args_tuple);
-    return NULL;
+    goto done;
   }
 
   // Py_DECREF(args_tuple);
-  Py_DECREF(func);
+  // Py_DECREF(func);
   // printf("`result`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(result)));
-  return result;
+  done:
+    Py_XDECREF(func);
+    return result;
 }
 
 static void NewInit_dealloc(NewInitObject* self)
