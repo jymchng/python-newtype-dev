@@ -35,6 +35,7 @@ test-leak:
 	python -m setup build_ext --inplace && pytest --enable-leak-tracking -W error --stacks 10 \
 	test_newtype_init.py \
 	test_newtype_meth.py \
+	test_slots.py \
 	test_custom_type.py -vv -s
 
 format:

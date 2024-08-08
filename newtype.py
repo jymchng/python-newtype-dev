@@ -17,7 +17,7 @@ logging.basicConfig(
     stream=sys.stdout,
 )
 
-from newtypeinit import NEWTYPE_INIT_ARGS_STR, NEWTYPE_INIT_KWARGS_STR, NewInit
+from newtypeinit import NEWTYPE_INIT_ARGS_STR, NEWTYPE_INIT_KWARGS_STR, NewTypeInit
 from newtypemethod import NewTypeMethod
 
 NEWTYPE_EXCLUDE_FUNC_STR = "_newtype_exclude_func_"
@@ -101,7 +101,7 @@ def NewType(type_: "Type[T]", **context) -> "Type[T]":
                     setattr(cls, k, v)
                     NEWTYPE_LOGGER.debug("Setted")
             NEWTYPE_LOGGER.debug("Setting cls.__init__")
-            cls.__init__ = NewInit(constructor)
+            cls.__init__ = NewTypeInit(constructor)
             if hasattr(cls, "__slots__"):
                 NEWTYPE_LOGGER.debug("cls.__slots__: ", cls.__slots__)
             NEWTYPE_LOGGER.debug("Setting cls.__init__ completed")

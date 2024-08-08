@@ -1,6 +1,6 @@
 import pytest
 
-from newtypeinit import NEWTYPE_INIT_ARGS_STR, NEWTYPE_INIT_KWARGS_STR, NewInit
+from newtypeinit import NEWTYPE_INIT_ARGS_STR, NEWTYPE_INIT_KWARGS_STR, NewTypeInit
 from newtype import NewType
 
 from conftest import limit_leaks, LEAK_LIMIT
@@ -13,7 +13,7 @@ class G(NewType(str)):
     def add_one(self):
         self.val += 1
 
-    __init__ = NewInit(__init__)
+    __init__ = NewTypeInit(__init__)
 
 
 @limit_leaks(LEAK_LIMIT)

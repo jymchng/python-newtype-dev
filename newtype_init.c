@@ -7,7 +7,7 @@
 #include "newtype_meth.h"
 #include "structmember.h"
 
-static int NewInit_init(NewInitObject* self, PyObject* args, PyObject* kwds)
+static int NewTypeInit_init(NewTypeInitObject* self, PyObject* args, PyObject* kwds)
 {
   PyObject* func;
 
@@ -28,27 +28,27 @@ static int NewInit_init(NewInitObject* self, PyObject* args, PyObject* kwds)
   }
 
   // Print initial values
-  // printf("NewInit_init: `self->obj`: %s\n",
-  // PyUnicode_AsUTF8(PyObject_Repr(self->obj))); printf("NewInit_init:
+  // printf("NewTypeInit_init: `self->obj`: %s\n",
+  // PyUnicode_AsUTF8(PyObject_Repr(self->obj))); printf("NewTypeInit_init:
   // `self->cls`: %s\n", PyUnicode_AsUTF8(PyObject_Repr((PyObject
   // *)self->cls)));
 
   return 0;
 }
 
-static PyObject* NewInit_get(NewInitObject* self,
+static PyObject* NewTypeInit_get(NewTypeInitObject* self,
                              PyObject* inst,
                              PyObject* owner)
 {
   Py_XDECREF(self->obj);  // Decrease reference to old object
   Py_XDECREF(self->cls);  // Decrease reference to old class
-  // printf("NewInit_get is called\n");
+  // printf("NewTypeInit_get is called\n");
 
   // Check current values
-  // printf("NewInit_get: `inst`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(inst)));
-  // printf("NewInit_get: `owner`: %s\n",
-  // PyUnicode_AsUTF8(PyObject_Repr(owner))); printf("NewInit_get: `self->obj`:
-  // %s\n", PyUnicode_AsUTF8(PyObject_Repr(self->obj))); printf("NewInit_get:
+  // printf("NewTypeInit_get: `inst`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(inst)));
+  // printf("NewTypeInit_get: `owner`: %s\n",
+  // PyUnicode_AsUTF8(PyObject_Repr(owner))); printf("NewTypeInit_get: `self->obj`:
+  // %s\n", PyUnicode_AsUTF8(PyObject_Repr(self->obj))); printf("NewTypeInit_get:
   // `self->cls`: %s\n", PyUnicode_AsUTF8(PyObject_Repr((PyObject
   // *)self->cls)));
 
@@ -60,8 +60,8 @@ static PyObject* NewInit_get(NewInitObject* self,
   Py_XINCREF(self->cls);
 
   // Print new values
-  // printf("NewInit_get updated: `self->obj`: %s\n",
-  // PyUnicode_AsUTF8(PyObject_Repr(self->obj))); printf("NewInit_get updated:
+  // printf("NewTypeInit_get updated: `self->obj`: %s\n",
+  // PyUnicode_AsUTF8(PyObject_Repr(self->obj))); printf("NewTypeInit_get updated:
   // `self->cls`: %s\n", PyUnicode_AsUTF8(PyObject_Repr((PyObject
   // *)self->cls)));
 
@@ -87,15 +87,15 @@ static PyObject* NewInit_get(NewInitObject* self,
   return (PyObject*)self;
 }
 
-static PyObject* NewInit_call(NewInitObject* self,
+static PyObject* NewTypeInit_call(NewTypeInitObject* self,
                               PyObject* args,
                               PyObject* kwds)
 {
-  // printf("NewInit_call is called\n");
+  // printf("NewTypeInit_call is called\n");
 
-  // printf("NewInit_call: `self->obj`: %s\n",
+  // printf("NewTypeInit_call: `self->obj`: %s\n",
   //        PyUnicode_AsUTF8(PyObject_Repr(self->obj)));
-  // printf("NewInit_call: `self->cls`: %s\n",
+  // printf("NewTypeInit_call: `self->cls`: %s\n",
   //        PyUnicode_AsUTF8(PyObject_Repr((PyObject*)self->cls)));
 
   PyObject* result;  // return this
@@ -111,7 +111,7 @@ static PyObject* NewInit_call(NewInitObject* self,
     if (self->obj == NULL && self->cls == NULL) {
       // free standing function
       PyErr_SetString(PyExc_TypeError,
-                      "`NewInit` object has no `obj` (internal attribute) or "
+                      "`NewTypeInit` object has no `obj` (internal attribute) or "
                       "`cls` (internal attribute),"
                       "it cannot be used to wrap a free standing function");
       return NULL;  // allocated nothing so no need to free
@@ -208,7 +208,7 @@ done:
   return result;
 }
 
-static void NewInit_dealloc(NewInitObject* self)
+static void NewTypeInit_dealloc(NewTypeInitObject* self)
 {
   Py_XDECREF(self->cls);
   Py_XDECREF(self->obj);
@@ -217,38 +217,38 @@ static void NewInit_dealloc(NewInitObject* self)
   Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
-static PyMethodDef NewInit_methods[] = {{NULL, NULL, 0, NULL}};
+static PyMethodDef NewTypeInit_methods[] = {{NULL, NULL, 0, NULL}};
 
-static PyTypeObject NewInitType = {
-    PyVarObject_HEAD_INIT(NULL, 0).tp_name = "newinit.NewInit",
+static PyTypeObject NewTypeInitType = {
+    PyVarObject_HEAD_INIT(NULL, 0).tp_name = "NewTypeInit.NewTypeInit",
     .tp_doc = "Descriptor class that wraps methods for instantiating subtypes.",
-    .tp_basicsize = sizeof(NewInitObject),
+    .tp_basicsize = sizeof(NewTypeInitObject),
     .tp_itemsize = 0,
     .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
     .tp_new = PyType_GenericNew,
-    .tp_init = (initproc)NewInit_init,
-    .tp_dealloc = (destructor)NewInit_dealloc,
-    .tp_call = (ternaryfunc)NewInit_call,
+    .tp_init = (initproc)NewTypeInit_init,
+    .tp_dealloc = (destructor)NewTypeInit_dealloc,
+    .tp_call = (ternaryfunc)NewTypeInit_call,
     .tp_getattro = PyObject_GenericGetAttr,
     .tp_setattro = NULL,
-    .tp_methods = NewInit_methods,
-    .tp_descr_get = (descrgetfunc)NewInit_get,
+    .tp_methods = NewTypeInit_methods,
+    .tp_descr_get = (descrgetfunc)NewTypeInit_get,
 };
 
-static struct PyModuleDef newinitmodule = {
+static struct PyModuleDef NewTypeInitmodule = {
     PyModuleDef_HEAD_INIT,
-    .m_name = "newinit",
-    .m_doc = "A module containing `NewInit` descriptor class.",
+    .m_name = "NewTypeInit",
+    .m_doc = "A module containing `NewTypeInit` descriptor class.",
     .m_size = -1,
 };
 
 PyMODINIT_FUNC PyInit_newtypeinit(void)
 {
   PyObject* m;
-  if (PyType_Ready(&NewInitType) < 0)
+  if (PyType_Ready(&NewTypeInitType) < 0)
     return NULL;
 
-  m = PyModule_Create(&newinitmodule);
+  m = PyModule_Create(&NewTypeInitmodule);
   if (m == NULL)
     return NULL;
 
@@ -268,9 +268,9 @@ PyMODINIT_FUNC PyInit_newtypeinit(void)
   }
   PyModule_AddObject(m, "NEWTYPE_INIT_ARGS_STR", PY_NEWTYPE_INIT_ARGS_STR);
 
-  Py_INCREF(&NewInitType);
-  if (PyModule_AddObject(m, "NewInit", (PyObject*)&NewInitType) < 0) {
-    Py_DECREF(&NewInitType);
+  Py_INCREF(&NewTypeInitType);
+  if (PyModule_AddObject(m, "NewTypeInit", (PyObject*)&NewTypeInitType) < 0) {
+    Py_DECREF(&NewTypeInitType);
     Py_DECREF(m);
     return NULL;
   }

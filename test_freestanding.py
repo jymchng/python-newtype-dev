@@ -1,7 +1,7 @@
 import pytest
 from conftest import limit_leaks, LEAK_LIMIT
 
-from newtype import NewInit, NewTypeMethod
+from newtype import NewTypeInit, NewTypeMethod
 
 
 @limit_leaks(LEAK_LIMIT)
@@ -18,6 +18,6 @@ def test_freestanding_print():
 
 @limit_leaks(LEAK_LIMIT)
 def test_freestanding_print_two():
-    newtype_method_freestanding = NewInit(free_standing_print)
+    newtype_method_freestanding = NewTypeInit(free_standing_print)
     with pytest.raises(TypeError):
         assert newtype_method_freestanding("Hello", "Hello", "World") == "Hello"
