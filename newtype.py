@@ -122,11 +122,14 @@ def NewType(type_: "Type[T]", **context) -> "Type[T]":
                 NEWTYPE_LOGGER.debug("_args: ", _args)
                 NEWTYPE_LOGGER.debug("_kwargs: ", _kwargs)
 
-                value_dict: dict = getattr(value, "__dict__", UNDEFINED)
+                # copy all the attributes in `__dict__`
+                value_dict: "dict" = getattr(value, "__dict__", UNDEFINED)
                 NEWTYPE_LOGGER.debug("value_dict: ", value_dict)
+
                 if value_dict is not UNDEFINED:
-                    for k, v in value_dict.items():
-                        setattr(inst, k, v)
+                    [setattr(inst, k, v) for k, v in value_dict.items()]
+                
+                # copy all the attributes in `__slots__`
                 value_slots: tuple = getattr(value, "__slots__", UNDEFINED)
                 NEWTYPE_LOGGER.debug("value_slots: ", value_slots)
                 if value_slots is not UNDEFINED:
