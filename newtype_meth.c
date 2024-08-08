@@ -122,9 +122,12 @@ static PyObject* NewTypeMethod_call(NewTypeMethodObject* self,
   }
 
   // printf("`result` is not an instance of `self->cls`\n");
-  if (PyObject_IsInstance(result, self->wrapped_cls)) {
+  if (PyObject_IsInstance(result, self->wrapped_cls))
+  {  // now we try to build an instance of the subtype
     // printf("`result` is an instance of `self->wrapped_cls`\n");
     PyObject *init_args, *init_kwargs;
+    PyObject *new_inst, *args_combined;
+
     if (self->obj == NULL) {
       PyObject* first_elem;
       if (PyTuple_Size(args) > 0) {  // Got arguments
@@ -152,9 +155,6 @@ static PyObject* NewTypeMethod_call(NewTypeMethodObject* self,
       init_kwargs = PyObject_GetAttrString(self->obj, NEWTYPE_INIT_KWARGS_STR);
     }
 
-    PyObject* new_inst;
-
-    PyObject* args_combined;
     Py_ssize_t args_len = PyTuple_Size(init_args);
     Py_ssize_t combined_args_len = 1 + args_len;
     args_combined = PyTuple_New(combined_args_len);
@@ -255,7 +255,7 @@ static struct PyModuleDef newtypemethodmodule = {
     PyModuleDef_HEAD_INIT,
     .m_name = "newtypemethod",
     .m_doc =
-        "A Module that contains `NewTypeMethod` which is a descriptor class "
+        "A Module that contains `NewTypeMethod` - a descriptor class "
         "that wraps around regular methods of a class to allow instantiation "
         "of the subtype if the method returns an instance of the supertype.",
     .m_size = -1,
