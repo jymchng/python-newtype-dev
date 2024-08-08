@@ -1,9 +1,6 @@
-import pytest
-
-from newtypeinit import NEWTYPE_INIT_ARGS_STR, NEWTYPE_INIT_KWARGS_STR, NewTypeInit
+from conftest import LEAK_LIMIT, limit_leaks
 from newtype import NewType
-
-from conftest import limit_leaks, LEAK_LIMIT
+from newtypeinit import NEWTYPE_INIT_ARGS_STR, NEWTYPE_INIT_KWARGS_STR, NewTypeInit
 
 
 class G(NewType(str)):

@@ -2,11 +2,11 @@
 
 import functools
 import inspect
+import logging
 import platform
 import sys
-from typing import Any, Callable
-import logging
 from logging import getLogger
+from typing import Any, Callable
 
 import pytest
 

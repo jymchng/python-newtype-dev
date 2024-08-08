@@ -1,9 +1,5 @@
-import pytest
-
-from newtypemethod import NewTypeMethod
+from conftest import LEAK_LIMIT, limit_leaks
 from newtype import NewType
-
-from conftest import limit_leaks, LEAK_LIMIT
 
 
 class G(NewType(str)):

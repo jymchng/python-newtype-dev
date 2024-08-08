@@ -3,12 +3,8 @@
 from typing import TYPE_CHECKING
 
 import pytest
-from conftest import (
-    limit_leaks,
-    LEAK_LIMIT,
-    LOGGER,
-)
 
+from conftest import LEAK_LIMIT, limit_leaks
 from newtype import NewType
 
 if TYPE_CHECKING:

@@ -7,7 +7,9 @@
 #include "newtype_meth.h"
 #include "structmember.h"
 
-static int NewTypeInit_init(NewTypeInitObject* self, PyObject* args, PyObject* kwds)
+static int NewTypeInit_init(NewTypeInitObject* self,
+                            PyObject* args,
+                            PyObject* kwds)
 {
   PyObject* func;
 
@@ -37,19 +39,20 @@ static int NewTypeInit_init(NewTypeInitObject* self, PyObject* args, PyObject* k
 }
 
 static PyObject* NewTypeInit_get(NewTypeInitObject* self,
-                             PyObject* inst,
-                             PyObject* owner)
+                                 PyObject* inst,
+                                 PyObject* owner)
 {
   Py_XDECREF(self->obj);  // Decrease reference to old object
   Py_XDECREF(self->cls);  // Decrease reference to old class
   // printf("NewTypeInit_get is called\n");
 
   // Check current values
-  // printf("NewTypeInit_get: `inst`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(inst)));
-  // printf("NewTypeInit_get: `owner`: %s\n",
-  // PyUnicode_AsUTF8(PyObject_Repr(owner))); printf("NewTypeInit_get: `self->obj`:
-  // %s\n", PyUnicode_AsUTF8(PyObject_Repr(self->obj))); printf("NewTypeInit_get:
-  // `self->cls`: %s\n", PyUnicode_AsUTF8(PyObject_Repr((PyObject
+  // printf("NewTypeInit_get: `inst`: %s\n",
+  // PyUnicode_AsUTF8(PyObject_Repr(inst))); printf("NewTypeInit_get: `owner`:
+  // %s\n", PyUnicode_AsUTF8(PyObject_Repr(owner))); printf("NewTypeInit_get:
+  // `self->obj`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(self->obj)));
+  // printf("NewTypeInit_get: `self->cls`: %s\n",
+  // PyUnicode_AsUTF8(PyObject_Repr((PyObject
   // *)self->cls)));
 
   // Py_XINCREF(inst);
@@ -61,8 +64,8 @@ static PyObject* NewTypeInit_get(NewTypeInitObject* self,
 
   // Print new values
   // printf("NewTypeInit_get updated: `self->obj`: %s\n",
-  // PyUnicode_AsUTF8(PyObject_Repr(self->obj))); printf("NewTypeInit_get updated:
-  // `self->cls`: %s\n", PyUnicode_AsUTF8(PyObject_Repr((PyObject
+  // PyUnicode_AsUTF8(PyObject_Repr(self->obj))); printf("NewTypeInit_get
+  // updated: `self->cls`: %s\n", PyUnicode_AsUTF8(PyObject_Repr((PyObject
   // *)self->cls)));
 
   if (self->obj == NULL) {
@@ -88,8 +91,8 @@ static PyObject* NewTypeInit_get(NewTypeInitObject* self,
 }
 
 static PyObject* NewTypeInit_call(NewTypeInitObject* self,
-                              PyObject* args,
-                              PyObject* kwds)
+                                  PyObject* args,
+                                  PyObject* kwds)
 {
   // printf("NewTypeInit_call is called\n");
 
@@ -110,10 +113,11 @@ static PyObject* NewTypeInit_call(NewTypeInitObject* self,
   if (self->has_get) {
     if (self->obj == NULL && self->cls == NULL) {
       // free standing function
-      PyErr_SetString(PyExc_TypeError,
-                      "`NewTypeInit` object has no `obj` (internal attribute) or "
-                      "`cls` (internal attribute),"
-                      "it cannot be used to wrap a free standing function");
+      PyErr_SetString(
+          PyExc_TypeError,
+          "`NewTypeInit` object has no `obj` (internal attribute) or "
+          "`cls` (internal attribute),"
+          "it cannot be used to wrap a free standing function");
       return NULL;  // allocated nothing so no need to free
     } else if (self->obj == NULL) {
       func = PyObject_CallFunctionObjArgs(

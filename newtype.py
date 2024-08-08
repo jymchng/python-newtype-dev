@@ -9,6 +9,9 @@ from logging import getLogger
 from typing import TYPE_CHECKING
 from weakref import WeakKeyDictionary
 
+from newtypeinit import NEWTYPE_INIT_ARGS_STR, NEWTYPE_INIT_KWARGS_STR, NewTypeInit
+from newtypemethod import NewTypeMethod
+
 NEWTYPE_LOGGER = getLogger("newtype-python")
 
 logging.basicConfig(
@@ -17,14 +20,11 @@ logging.basicConfig(
     stream=sys.stdout,
 )
 
-from newtypeinit import NEWTYPE_INIT_ARGS_STR, NEWTYPE_INIT_KWARGS_STR, NewTypeInit
-from newtypemethod import NewTypeMethod
-
 NEWTYPE_EXCLUDE_FUNC_STR = "_newtype_exclude_func_"
 UNDEFINED = object()
 
 if TYPE_CHECKING:
-    from typing import Any, Dict, Tuple, Type, TypeVar
+    from typing import Type, TypeVar
 
     T = TypeVar("T")
 
@@ -47,7 +47,7 @@ def NewType(type_: "Type[T]", **context) -> "Type[T]":
     try:
         # we try to see if it is cached, if it is not, no problem either
         if type_ in __GLOBAL_INTERNAL_TYPE_CACHE__:
-            NEWTYPE_LOGGER.debug("Found in cache")
+            NEWTYPE_LOGGER.debug(f"`{type_}` found in cache")
             return __GLOBAL_INTERNAL_TYPE_CACHE__[type_]
     except KeyError:
         pass

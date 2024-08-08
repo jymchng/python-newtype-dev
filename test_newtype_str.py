@@ -1,13 +1,17 @@
-import logging
 import re
-import sys
 from abc import ABC, abstractmethod
-from logging import getLogger
 
 import pytest
-from conftest import LEAK_LIMIT, limit_leaks
 
+from conftest import LEAK_LIMIT, limit_leaks
 from newtype import NewType, newtype_exclude
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing import (
+        Type,
+    )
 
 
 class NRIC(NewType(str)):

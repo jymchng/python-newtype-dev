@@ -1,6 +1,6 @@
 import pytest
-from conftest import limit_leaks, LEAK_LIMIT
 
+from conftest import LEAK_LIMIT, limit_leaks
 from newtype import NewTypeInit, NewTypeMethod
 
 

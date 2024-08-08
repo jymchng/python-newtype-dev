@@ -3,9 +3,8 @@ from typing import TYPE_CHECKING
 import pandas as pd
 import pytest
 
+from conftest import LEAK_LIMIT, limit_leaks
 from newtype import NewType
-
-from conftest import limit_leaks, LEAK_LIMIT
 
 if TYPE_CHECKING:
     pass
