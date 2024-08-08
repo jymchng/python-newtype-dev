@@ -130,6 +130,11 @@ static PyObject* NewTypeMethod_call(NewTypeMethodObject* self,
 
     if (self->obj == NULL) {
       PyObject* first_elem;
+      
+      if (self->cls == NULL) {
+        goto done;
+      }
+
       if (PyTuple_Size(args) > 0) {  // Got arguments
         first_elem = PyTuple_GetItem(args, 0);
         Py_XINCREF(
@@ -138,9 +143,6 @@ static PyObject* NewTypeMethod_call(NewTypeMethodObject* self,
       } else {  // `args` is empty here, then we are done actually
         goto done;
       };
-      if (self->cls == NULL) {
-        goto done;
-      }
       if (PyObject_IsInstance(first_elem, (PyObject*)self->cls)) {
         init_args = PyObject_GetAttrString(first_elem, NEWTYPE_INIT_ARGS_STR);
         init_kwargs =
