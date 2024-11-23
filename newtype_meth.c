@@ -53,9 +53,9 @@ static PyObject* NewTypeMethod_get(NewTypeMethodObject* self,
   Py_XINCREF(self->cls);  // Increase reference to new class
 
   // if (self->obj == NULL) {
-  //   // printf("`self->obj` is NULL\n");
+  //   DEBUG_PRINT("`self->obj` is NULL\n");
   //   if (self->func_get != NULL) {
-  //     // printf("`self->func_get`: %s\n",
+  //     DEBUG_PRINT("`self->func_get`: %s\n",
   //     PyUnicode_AsUTF8(PyObject_Repr(self->func_get))); if (self->has_get) {
   //       return PyObject_CallFunctionObjArgs(self->func_get, Py_None,
   //                                           self->wrapped_cls, NULL);
@@ -79,26 +79,31 @@ static PyObject* NewTypeMethod_call(NewTypeMethodObject* self,
 {
   PyObject *func, *result;
 
-  // printf("`self->obj`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(self->obj)));
-  // printf("`self->cls`: %s\n", PyUnicode_AsUTF8(PyObject_Repr((PyObject
-  // *)self->cls)));
+  // This causes recursion for pandas DataFrame
+  // if (self->obj != NULL) {
+  //   DEBUG_PRINT("`self->obj`: %s\n",
+  //               PyUnicode_AsUTF8(PyObject_Repr(self->obj)));
+  // }
+
+  if (self->cls != NULL) {
+    DEBUG_PRINT("`self->cls`: %s\n",
+                PyUnicode_AsUTF8(PyObject_Repr((PyObject*)self->cls)));
+  }
 
   if (self->has_get) {
     DEBUG_PRINT("`self->has_get` = %d\n", self->has_get);
     if (self->obj == NULL) {
-      // printf("`self->obj` is NULL\n");
+      DEBUG_PRINT("`self->obj` is NULL\n");
       func = PyObject_CallFunctionObjArgs(
           self->func_get, Py_None, self->wrapped_cls, NULL);
-      // printf("`func`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(func)));
     } else {
-      // printf("`self->obj` is not NULL\n");
+      DEBUG_PRINT("`self->obj` is not NULL\n");
       func = PyObject_CallFunctionObjArgs(
           self->func_get, self->obj, self->wrapped_cls, NULL);
-      // printf("`func`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(func)));
     }
   } else {
     func = self->func_get;
-    // printf("`self->has_get` = %d\n", self->has_get);
+    DEBUG_PRINT("`self->has_get` = %d\n", self->has_get);
     Py_INCREF(func);
   }
 
@@ -106,12 +111,15 @@ static PyObject* NewTypeMethod_call(NewTypeMethodObject* self,
     return NULL;
   }
 
+  // This causes recursion for pandas DataFrame
+  // DEBUG_PRINT("`func`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(func)));
+
   result = PyObject_Call(func, args, kwargs);
   Py_DECREF(func);
 
   if (result == NULL)
     return NULL;
-  // printf("`result` = %s\n", PyUnicode_AsUTF8(PyObject_Repr(result)));
+  DEBUG_PRINT("`result` = %s\n", PyUnicode_AsUTF8(PyObject_Repr(result)));
 
   if (self->obj == NULL && self->cls == NULL) {
     // free standing function is being wrapped
@@ -122,10 +130,10 @@ static PyObject* NewTypeMethod_call(NewTypeMethodObject* self,
     goto done;
   }
 
-  // printf("`result` is not an instance of `self->cls`\n");
+  DEBUG_PRINT("`result` is not an instance of `self->cls`\n");
   if (PyObject_IsInstance(result, self->wrapped_cls))
   {  // now we try to build an instance of the subtype
-    // printf("`result` is an instance of `self->wrapped_cls`\n");
+    DEBUG_PRINT("`result` is an instance of `self->wrapped_cls`\n");
     PyObject *init_args, *init_kwargs;
     PyObject *new_inst, *args_combined;
 
@@ -187,13 +195,17 @@ static PyObject* NewTypeMethod_call(NewTypeMethodObject* self,
                        i + 1,
                        item);  // `item` is now owned by `args_combined`
     }
-    // printf("`args_combined`: %s\n",
-    // PyUnicode_AsUTF8(PyObject_Repr(args_combined))); printf("`init_kwargs`:
-    // %s\n", PyUnicode_AsUTF8(PyObject_Repr(init_kwargs)));
+    DEBUG_PRINT("`args_combined`: %s\n",
+                PyUnicode_AsUTF8(PyObject_Repr(args_combined)));
+
+    if (init_kwargs != NULL) {
+      DEBUG_PRINT("`init_kwargs`: %s\n",
+                  PyUnicode_AsUTF8(PyObject_Repr(init_kwargs)));
+    };
 
     // Call the function or constructor
     new_inst = PyObject_Call((PyObject*)self->cls, args_combined, init_kwargs);
-    // printf("`new_inst`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(new_inst)));
+
     // Clean up
     Py_DECREF(args_combined);  // Decrement reference count of `args_combined`
     Py_XDECREF(init_args);
@@ -203,6 +215,7 @@ static PyObject* NewTypeMethod_call(NewTypeMethodObject* self,
     if (new_inst == NULL) {
       return NULL;
     }
+    DEBUG_PRINT("`new_inst`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(new_inst)));
     return new_inst;
   }
 
