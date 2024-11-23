@@ -1,10 +1,10 @@
 #define PY_SSIZE_T_CLEAN
 #include "newtype_meth.h"
-#include "newtype_debug_print.h"
 
 #include <Python.h>
 #include <stddef.h>
 
+#include "newtype_debug_print.h"
 #include "structmember.h"  // Include for PyMemberDef and related macros
 
 // Method to initialize the NewTypeMethod object
@@ -131,7 +131,7 @@ static PyObject* NewTypeMethod_call(NewTypeMethodObject* self,
 
     if (self->obj == NULL) {
       PyObject* first_elem;
-      
+
       if (self->cls == NULL) {
         goto done;
       }
@@ -210,7 +210,6 @@ done:
   Py_XINCREF(result);
   return result;
 }
-
 
 // Deallocation method
 static void NewTypeMethod_dealloc(NewTypeMethodObject* self)

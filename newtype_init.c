@@ -1,10 +1,10 @@
 #define PY_SSIZE_T_CLEAN
 #include "newtype_init.h"
-#include "newtype_debug_print.h"
 
 #include <Python.h>
 #include <stddef.h>
 
+#include "newtype_debug_print.h"
 #include "newtype_meth.h"
 #include "structmember.h"
 
