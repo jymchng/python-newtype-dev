@@ -1,5 +1,6 @@
 #define PY_SSIZE_T_CLEAN
 #include "newtype_meth.h"
+#include "newtype_debug_print.h"
 
 #include <Python.h>
 #include <stddef.h>
@@ -83,7 +84,7 @@ static PyObject* NewTypeMethod_call(NewTypeMethodObject* self,
   // *)self->cls)));
 
   if (self->has_get) {
-    // printf("`self->has_get` = %d\n", self->has_get);
+    DEBUG_PRINT("`self->has_get` = %d\n", self->has_get);
     if (self->obj == NULL) {
       // printf("`self->obj` is NULL\n");
       func = PyObject_CallFunctionObjArgs(
@@ -210,14 +211,6 @@ done:
   return result;
 }
 
-// Member definitions; MUST REMOVE
-// static PyMemberDef NewTypeMethod_members[] = {
-//     {"obj", T_OBJECT_EX, offsetof(NewTypeMethodObject, obj), READONLY,
-//      "Instance object"},
-//     {"cls", T_OBJECT_EX, offsetof(NewTypeMethodObject, cls), READONLY,
-//      "Owner class"},
-//     {NULL} // Sentinel
-// };
 
 // Deallocation method
 static void NewTypeMethod_dealloc(NewTypeMethodObject* self)
@@ -245,7 +238,6 @@ PyTypeObject NewTypeMethodType = {
     .tp_new = PyType_GenericNew,
     .tp_init = (initproc)NewTypeMethod_init,
     .tp_dealloc = (destructor)NewTypeMethod_dealloc,
-    // .tp_members = NewTypeMethod_members,
     .tp_call = (ternaryfunc)NewTypeMethod_call,
     .tp_getattro = PyObject_GenericGetAttr,
     .tp_methods = NewTypeMethod_methods,
