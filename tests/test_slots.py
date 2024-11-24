@@ -1,6 +1,6 @@
 import pytest
-
 from conftest import LEAK_LIMIT, limit_leaks
+
 from src.newtype import NewType
 
 
@@ -51,4 +51,4 @@ def test_slots_inheritance():
 
     # Check that base instance cannot access derived slots
     with pytest.raises(AttributeError):
-        base.age  # Should raise an error since 'age' is not a defined slot in Base
+        _ = base.age  # Should raise an error since 'age' is not a defined slot in Base

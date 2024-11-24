@@ -16,6 +16,7 @@ from src.newtype.extensions.newtypeinit import (
 )
 from src.newtype.extensions.newtypemethod import NewTypeMethod
 
+
 NEWTYPE_LOGGER = getLogger("newtype-python")
 
 logging.basicConfig(
@@ -47,19 +48,20 @@ def func_is_excluded(func):
     return getattr(func, NEWTYPE_EXCLUDE_FUNC_STR, False)
 
 
-def NewType(type_: "Type[T]", **context) -> "Type[T]":
+def NewType(type_: "Type[T]", **context) -> "Type[T]":  # noqa: N802, C901
     try:
         # we try to see if it is cached, if it is not, no problem either
         if type_ in __GLOBAL_INTERNAL_TYPE_CACHE__:
             NEWTYPE_LOGGER.debug(f"`{type_}` found in cache")
             return __GLOBAL_INTERNAL_TYPE_CACHE__[type_]
     except KeyError:
+        NEWTYPE_LOGGER.debug("Exception occured but ignored during caching of NewType")
         pass
 
     class BaseNewType(type_):
         if hasattr(type_, "__slots__"):
             __slots__ = (
-                *getattr(type_, "__slots__"),
+                *type_.__slots__,
                 NEWTYPE_INIT_ARGS_STR,
                 NEWTYPE_INIT_KWARGS_STR,
             )
@@ -127,7 +129,7 @@ def NewType(type_: "Type[T]", **context) -> "Type[T]":
                 NEWTYPE_LOGGER.debug("_kwargs: ", _kwargs)
 
                 # copy all the attributes in `__dict__`
-                value_dict: "dict" = getattr(value, "__dict__", UNDEFINED)
+                value_dict: dict = getattr(value, "__dict__", UNDEFINED)
                 NEWTYPE_LOGGER.debug("value_dict: ", value_dict)
 
                 if value_dict is not UNDEFINED:
@@ -158,6 +160,7 @@ def NewType(type_: "Type[T]", **context) -> "Type[T]":
             NEWTYPE_LOGGER.debug(f"`type_` = {type_} is cached...")
             __GLOBAL_INTERNAL_TYPE_CACHE__[type_] = BaseNewType
     except Exception:
+        NEWTYPE_LOGGER.debug("Exception occured but ignored during caching of NewType")
         pass
 
     return BaseNewType

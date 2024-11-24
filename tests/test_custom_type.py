@@ -3,9 +3,10 @@
 from typing import TYPE_CHECKING
 
 import pytest
-
 from conftest import LEAK_LIMIT, limit_leaks
+
 from src.newtype import NewType
+
 
 if TYPE_CHECKING:
     from typing import List, Optional

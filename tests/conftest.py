@@ -10,6 +10,7 @@ from typing import Any, Callable
 
 import pytest
 
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)-8s [%(filename)s:%(lineno)s] %(message)s",
@@ -34,7 +35,7 @@ def limit_leaks(memstring: str):
             if not inspect.iscoroutinefunction(func):
 
                 @functools.wraps(func)
-                def wrapper(*args, **kwargs):  # type: ignore
+                def wrapper(*args, **kwargs):
                     for _ in range(ITERATIONS):
                         func(*args, **kwargs)
 

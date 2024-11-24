@@ -1,4 +1,5 @@
 from conftest import LEAK_LIMIT, limit_leaks
+
 from src.newtype import NewType
 from src.newtype.extensions.newtypeinit import (
     NEWTYPE_INIT_ARGS_STR,

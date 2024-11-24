@@ -1,15 +1,22 @@
 # Python binary
 PYTHON := python
 
+# Poetry
+POETRY := poetry
+
+PROJECT_DIR := newtype
+SRC := src
+EXTENSIONS := extensions
+
 # Files and directories
-SO_FILES := newtypemethod.cpython-*-linux-gnu.so newtypeinit.cpython-*-linux-gnu.so
+SO_FILES := newtypemethod.cpython-*-linux-gnu.so newtypeinit.cpython-*-linux-gnu.so $(SRC)/$(PROJECT_DIR)/$(EXTENSIONS)/newtypemethod.cpython-*-linux-gnu.so $(SRC)/$(PROJECT_DIR)/$(EXTENSIONS)/newtypeinit.cpython-*-linux-gnu.so
 BUILD_DIR := build
 PYTEST_FLAGS := -s -vv
 
-.PHONY: all clean build test test-all test-debug test-custom test-free test-slots test-init test-leak install lint format check venv-poetry
+.PHONY: all clean build test test-all test-debug test-custom test-free test-slots test-init test-leak install lint format check venv-poetry clean-deps
 
 # Default target
-all: clean build test format check venv-poetry
+all: clean build test format check venv-poetry clean-deps
 
 # Check code quality
 check:
@@ -24,19 +31,22 @@ format:
 
 # Clean build artifacts
 clean:
-	$(PYTHON) -m setup clean --all
+	rm -fr dist
 	rm -f $(SO_FILES)
 	rm -rf $(BUILD_DIR)
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
 
+clean-deps:
+	pip freeze | xargs pip uninstall -y
+
 # Build extensions
 build:
-	$(PYTHON) -m setup build_ext --inplace
+	$(POETRY) build
 
 # Build with debug printing enabled
 build-debug:
-	$(PYTHON) -m setup build_ext --inplace -D__DEBUG_PRINT__
+	export __PYNT_DEBUG__="true" && make build
 
 # Install dependencies
 install:
@@ -48,7 +58,7 @@ test:
 
 # Run all tests with debug build
 test-debug: build-debug
-	$(PYTHON) -m pytest . $(PYTEST_FLAGS)
+	$(PYTHON) -m pytest . $(PYTEST_FLAGS) && unset __PYNT_DEBUG__
 
 # Run specific test suites
 test-custom:
@@ -106,3 +116,4 @@ help:
 	@echo "  dev          - Development workflow: clean, build, test"
 	@echo "  dev-debug    - Development workflow with debug: clean, build-debug, test"
 	@echo "  format    	  - Format all codes"
+	@echo "  clean-deps   - Uninstall all dependencies in the Virtual Environment"

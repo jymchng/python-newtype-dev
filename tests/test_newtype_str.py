@@ -1,12 +1,12 @@
 import re
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
 
 import pytest
-
 from conftest import LEAK_LIMIT, limit_leaks
+
 from src.newtype import NewType, newtype_exclude
 
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from typing import (
@@ -33,9 +33,9 @@ class NRIC(NewType(str)):
 
     @staticmethod
     def __validate__(nric: "str"):
-        alpha_ST = ("J", "Z", "I", "H", "G", "F", "E", "D", "C", "B", "A")
-        alpha_GF = ("X", "W", "U", "T", "R", "Q", "P", "N", "M", "L", "K")
-        alpha_M = ("K", "L", "J", "N", "P", "Q", "R", "T", "U", "W", "X")
+        alpha_st = ("J", "Z", "I", "H", "G", "F", "E", "D", "C", "B", "A")
+        alpha_gf = ("X", "W", "U", "T", "R", "Q", "P", "N", "M", "L", "K")
+        alpha_m = ("K", "L", "J", "N", "P", "Q", "R", "T", "U", "W", "X")
         assert len(str(nric)) == 9, f"NRIC length must be 9, it is `{len(nric)}`"
         assert nric[0] in [
             "S",
@@ -54,12 +54,12 @@ class NRIC(NewType(str)):
             offset = 3
         expected_checksum = (offset + weighted_sum) % 11
         if nric[0] in ["S", "T"]:
-            assert alpha_ST[expected_checksum] == nric[8], "Checksum is not right"
+            assert alpha_st[expected_checksum] == nric[8], "Checksum is not right"
         elif nric[0] == "M":
             expected_checksum = 10 - expected_checksum
-            assert alpha_M[expected_checksum] == nric[8]
+            assert alpha_m[expected_checksum] == nric[8]
         else:
-            assert alpha_GF[expected_checksum] == nric[8]
+            assert alpha_gf[expected_checksum] == nric[8]
 
 
 class GoodManNRIC(NRIC):  # inherit from `NRIC` directly, NOT `NewType(NRIC)`
@@ -208,10 +208,7 @@ class EthereumAddress(BlockchainAddress):
     def _validate_address(address):
         import re
 
-        # Ethereum addresses are 40 hexadecimal characters prefixed with '0x'
-        if not re.match(r"^0x[0-9a-fA-F]{40}$", address):
-            return False
-        return True
+        return re.match(r"^0x[0-9a-fA-F]{40}$", address)
 
 
 def test_ethereum_address():

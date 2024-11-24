@@ -2,9 +2,10 @@ from typing import TYPE_CHECKING
 
 import pandas as pd
 import pytest
-
 from conftest import LEAK_LIMIT, limit_leaks
+
 from src.newtype import NewType
+
 
 if TYPE_CHECKING:
     pass
