@@ -1,7 +1,7 @@
 import pytest
 
 from conftest import LEAK_LIMIT, limit_leaks
-from newtype import NewType
+from src.newtype import NewType
 
 
 class Super:

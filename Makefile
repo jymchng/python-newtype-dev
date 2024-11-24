@@ -6,10 +6,15 @@ SO_FILES := newtypemethod.cpython-*-linux-gnu.so newtypeinit.cpython-*-linux-gnu
 BUILD_DIR := build
 PYTEST_FLAGS := -s -vv
 
-.PHONY: all clean build test test-all test-debug test-custom test-free test-slots test-init test-leak install lint
+.PHONY: all clean build test test-all test-debug test-custom test-free test-slots test-init test-leak install lint format
 
 # Default target
-all: clean build test
+all: clean build test format
+
+# Format code
+format:
+	ruff format .
+	find . -name "*.c" -exec clang-format -i {} +
 
 # Clean build artifacts
 clean:
@@ -41,26 +46,26 @@ test-debug: build-debug
 
 # Run specific test suites
 test-custom:
-	$(PYTHON) -m pytest test_custom_type.py $(PYTEST_FLAGS)
+	$(PYTHON) -m pytest tests/test_custom_type.py $(PYTEST_FLAGS)
 
 test-free:
-	$(PYTHON) -m pytest test_freestanding.py $(PYTEST_FLAGS)
+	$(PYTHON) -m pytest tests/test_freestanding.py $(PYTEST_FLAGS)
 
 test-slots:
-	$(PYTHON) -m pytest test_slots.py $(PYTEST_FLAGS)
+	$(PYTHON) -m pytest tests/test_slots.py $(PYTEST_FLAGS)
 
 test-init:
-	$(PYTHON) -m pytest test_newtype_init.py $(PYTEST_FLAGS)
+	$(PYTHON) -m pytest tests/test_newtype_init.py $(PYTEST_FLAGS)
 
 test-str:
-	$(PYTHON) -m pytest test_newtype_str.py $(PYTEST_FLAGS)
+	$(PYTHON) -m pytest tests/test_newtype_str.py $(PYTEST_FLAGS)
 
 test-async:
-	$(PYTHON) -m pytest test_async.py $(PYTEST_FLAGS)
+	$(PYTHON) -m pytest tests/test_async.py $(PYTEST_FLAGS)
 
 # Run memory leak tests
 test-leak:
-	$(PYTHON) -m pytest --enable-leak-tracking -W error --stacks 10 test_newtype_init.py $(PYTEST_FLAGS)
+	$(PYTHON) -m pytest --enable-leak-tracking -W error --stacks 10 tests/test_newtype_init.py $(PYTEST_FLAGS)
 
 # Run a specific test file (usage: make test-file FILE=test_newtype.py)
 test-file:
@@ -91,3 +96,4 @@ help:
 	@echo "  test-file    - Run a specific test file (usage: make test-file FILE=test_newtype.py)"
 	@echo "  dev          - Development workflow: clean, build, test"
 	@echo "  dev-debug    - Development workflow with debug: clean, build-debug, test"
+	@echo "  format    	  - Format all codes"

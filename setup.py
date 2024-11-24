@@ -2,22 +2,24 @@ from setuptools import Extension, setup, find_packages
 import sys
 
 # Check if debug printing should be enabled
-debug_print = '-D__DEBUG_PRINT__' in sys.argv
+debug_print = "-D__DEBUG_PRINT__" in sys.argv
 if debug_print:
-    sys.argv.remove('-D__DEBUG_PRINT__')  # Remove the flag for setuptools to avoid errors
+    sys.argv.remove(
+        "-D__DEBUG_PRINT__"
+    )  # Remove the flag for setuptools to avoid errors
 
 module_newtypemethod = Extension(
     "newtype.extensions.newtypemethod",
     sources=["src/newtype/extensions/newtype_meth.c"],
     include_dirs=["src/newtype/extensions"],
-    extra_compile_args=['-D__DEBUG_PRINT__'] if debug_print else []
+    extra_compile_args=["-D__DEBUG_PRINT__"] if debug_print else [],
 )
 
 module_newtypeinit = Extension(
     "newtype.extensions.newtypeinit",
     sources=["src/newtype/extensions/newtype_init.c"],
     include_dirs=["src/newtype/extensions"],
-    extra_compile_args=['-D__DEBUG_PRINT__'] if debug_print else []
+    extra_compile_args=["-D__DEBUG_PRINT__"] if debug_print else [],
 )
 
 with open("docs/README.md", "r", encoding="utf-8") as fh:

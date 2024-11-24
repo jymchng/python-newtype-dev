@@ -1,6 +1,10 @@
 from conftest import LEAK_LIMIT, limit_leaks
-from newtype import NewType
-from newtypeinit import NEWTYPE_INIT_ARGS_STR, NEWTYPE_INIT_KWARGS_STR, NewTypeInit
+from src.newtype import NewType
+from src.newtype.extensions.newtypeinit import (
+    NEWTYPE_INIT_ARGS_STR,
+    NEWTYPE_INIT_KWARGS_STR,
+    NewTypeInit,
+)
 
 
 class G(NewType(str)):

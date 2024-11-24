@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 import pytest
 
 from conftest import LEAK_LIMIT, limit_leaks
-from newtype import NewType, newtype_exclude
+from src.newtype import NewType, newtype_exclude
 
 from typing import TYPE_CHECKING
 

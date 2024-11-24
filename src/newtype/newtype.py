@@ -9,8 +9,12 @@ from logging import getLogger
 from typing import TYPE_CHECKING
 from weakref import WeakKeyDictionary
 
-from .extensions.newtypeinit import NEWTYPE_INIT_ARGS_STR, NEWTYPE_INIT_KWARGS_STR, NewTypeInit
-from .extensions.newtypemethod import NewTypeMethod
+from src.newtype.extensions.newtypeinit import (
+    NEWTYPE_INIT_ARGS_STR,
+    NEWTYPE_INIT_KWARGS_STR,
+    NewTypeInit,
+)
+from src.newtype.extensions.newtypemethod import NewTypeMethod
 
 NEWTYPE_LOGGER = getLogger("newtype-python")
 
@@ -128,7 +132,7 @@ def NewType(type_: "Type[T]", **context) -> "Type[T]":
 
                 if value_dict is not UNDEFINED:
                     [setattr(inst, k, v) for k, v in value_dict.items()]
-                
+
                 # copy all the attributes in `__slots__`
                 value_slots: tuple = getattr(value, "__slots__", UNDEFINED)
                 NEWTYPE_LOGGER.debug("value_slots: ", value_slots)
