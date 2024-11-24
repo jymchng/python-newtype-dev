@@ -6,10 +6,16 @@ SO_FILES := newtypemethod.cpython-*-linux-gnu.so newtypeinit.cpython-*-linux-gnu
 BUILD_DIR := build
 PYTEST_FLAGS := -s -vv
 
-.PHONY: all clean build test test-all test-debug test-custom test-free test-slots test-init test-leak install lint format
+.PHONY: all clean build test test-all test-debug test-custom test-free test-slots test-init test-leak install lint format check venv-poetry
 
 # Default target
-all: clean build test format
+all: clean build test format check venv-poetry
+
+# Check code quality
+check:
+	ruff check .
+	find . -name "*.c" -exec clang-tidy {} +
+	find . -name "*.c" -exec cppcheck {} +
 
 # Format code
 format:
@@ -75,6 +81,9 @@ test-file:
 dev: clean build test
 
 dev-debug: clean build-debug test
+
+venv-poetry:
+	poetry config virtualenvs.in-project true
 
 # Help target
 help:
