@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=72.1.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "python-newtype"
+dynamic = ["version"]
+description = "A Python library for extending existing types with additional functionality"
+readme = "docs/README.md"
+authors = [
+    {name = "openhands", email = "openhands@all-hands.dev"},
+]
+license = {text = "MIT"}
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "typing_extensions",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=3.2",
+    "pytest-asyncio",
+    "pytest-memray",
+    "pandas>=2",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-ra -q"
+
+[tool.poetry-dynamic-versioning]
+enable = true
+vcs = "git"
+style = "semver"

@@ -250,3 +250,6 @@ poetry.toml
 
 # Ruff
 .ruff_cache/
+
+# Project specific
+valgrind-python.supp
