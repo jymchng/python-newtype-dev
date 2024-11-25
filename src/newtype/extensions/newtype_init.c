@@ -31,10 +31,10 @@ static int NewTypeInit_init(NewTypeInitObject* self,
   }
 
   // Print initial values
-  // printf("NewTypeInit_init: `self->obj`: %s\n",
-  // PyUnicode_AsUTF8(PyObject_Repr(self->obj))); printf("NewTypeInit_init:
-  // `self->cls`: %s\n", PyUnicode_AsUTF8(PyObject_Repr((PyObject
-  // *)self->cls)));
+  DEBUG_PRINT("NewTypeInit_init: `self->obj`: %s\n",
+              PyUnicode_AsUTF8(PyObject_Repr(self->obj)));
+  DEBUG_PRINT("NewTypeInit_init: `self->cls`: %s\n",
+              PyUnicode_AsUTF8(PyObject_Repr((PyObject*)self->cls)));
 
   return 0;
 }
@@ -45,16 +45,13 @@ static PyObject* NewTypeInit_get(NewTypeInitObject* self,
 {
   Py_XDECREF(self->obj);  // Decrease reference to old object
   Py_XDECREF(self->cls);  // Decrease reference to old class
-  // printf("NewTypeInit_get is called\n");
+  DEBUG_PRINT("NewTypeInit_get is called\n");
 
   // Check current values
-  // printf("NewTypeInit_get: `inst`: %s\n",
-  // PyUnicode_AsUTF8(PyObject_Repr(inst))); printf("NewTypeInit_get: `owner`:
-  // %s\n", PyUnicode_AsUTF8(PyObject_Repr(owner))); printf("NewTypeInit_get:
-  // `self->obj`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(self->obj)));
-  // printf("NewTypeInit_get: `self->cls`: %s\n",
-  // PyUnicode_AsUTF8(PyObject_Repr((PyObject
-  // *)self->cls)));
+  DEBUG_PRINT("NewTypeInit_get: `inst`: %s\n",
+              PyUnicode_AsUTF8(PyObject_Repr(inst)));
+  DEBUG_PRINT("NewTypeInit_get: `owner`: %s\n",
+              PyUnicode_AsUTF8(PyObject_Repr(owner)));
 
   // Py_XINCREF(inst);
   self->obj = inst;
@@ -64,18 +61,18 @@ static PyObject* NewTypeInit_get(NewTypeInitObject* self,
   Py_XINCREF(self->cls);
 
   // Print new values
-  // printf("NewTypeInit_get updated: `self->obj`: %s\n",
-  // PyUnicode_AsUTF8(PyObject_Repr(self->obj))); printf("NewTypeInit_get
-  // updated: `self->cls`: %s\n", PyUnicode_AsUTF8(PyObject_Repr((PyObject
-  // *)self->cls)));
+  DEBUG_PRINT("NewTypeInit_get updated: `self->obj`: %s\n",
+              PyUnicode_AsUTF8(PyObject_Repr(self->obj)));
+  DEBUG_PRINT("NewTypeInit_get updated: `self->cls`: %s\n",
+              PyUnicode_AsUTF8(PyObject_Repr((PyObject*)self->cls)));
 
   if (self->obj == NULL) {
-    // printf("`self->obj` is NULL\n");
+    DEBUG_PRINT("`self->obj` is NULL\n");
     if (self->func_get != NULL) {
-      // printf("`self->func_get`: %s\n",
-      // PyUnicode_AsUTF8(PyObject_Repr(self->func_get)));
+      DEBUG_PRINT("`self->func_get`: %s\n",
+                  PyUnicode_AsUTF8(PyObject_Repr(self->func_get)));
       if (self->has_get) {
-        // printf("`self->has_get`: %d\n", self->has_get);
+        DEBUG_PRINT("`self->has_get`: %d\n", self->has_get);
         return PyObject_CallFunctionObjArgs(
             self->func_get, Py_None, self->cls, NULL);
       }
@@ -83,7 +80,7 @@ static PyObject* NewTypeInit_get(NewTypeInitObject* self,
     }
     PyErr_SetString(
         PyExc_TypeError,
-        "`NewTypeMethod` object has no `func_get`; this is an internal C-API "
+        "`NewTypeInit` object has no `func_get`; this is an internal C-API "
         "error - please report this as an issue to the author on GitHub");
   }
 
@@ -159,7 +156,8 @@ static PyObject* NewTypeInit_call(NewTypeInitObject* self,
       args_slice = PyTuple_New(0);
     }
     if (PyObject_SetAttrString(self->obj, NEWTYPE_INIT_ARGS_STR, args_slice)
-        < 0) {
+        < 0)
+    {
       Py_DECREF(args_slice);
       // Py_DECREF(args_tuple);
       result = NULL;
