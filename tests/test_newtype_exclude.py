@@ -1,5 +1,3 @@
-import pytest
-
 from newtype import func_is_excluded, newtype_exclude
 
 
@@ -52,6 +50,7 @@ def test_exclude_same_func_twice():
 def test_exclusion_on_lambda():
     def test_lambda(x):
         return x
+
     newtype_exclude(test_lambda)
     assert func_is_excluded(test_lambda)
 
@@ -71,7 +70,6 @@ def test_exclusion_on_bound_method():
         def method(self):
             pass
 
-    _obj = MyClass()
     newtype_exclude(MyClass.method)
     assert func_is_excluded(MyClass.method)
 

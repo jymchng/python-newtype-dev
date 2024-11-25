@@ -40,6 +40,9 @@ generate-ref-docs = "scripts.generate_ref_docs:main"
 python = ">=3.8,<4.0"
 typing-extensions = "*"
 
+[tool.poetry-dynamic-versioning]
+version-file = "newtype/__init__.py"
+
 [tool.poetry.group.docs.dependencies]
 mkdocs = "*"
 mkdocs-material = "*"
@@ -57,6 +60,7 @@ isort = "*"
 creosote = "*"
 pre-commit = "*"
 tomli = "^2.1.0"
+poetry-dynamic-versioning = "^1.4.1"
 
 [tool.poetry.group.debug]
 optional = true

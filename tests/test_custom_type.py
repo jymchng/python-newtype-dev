@@ -1,4 +1,5 @@
-# `limit_leaks` copied from https://github.com/ZeroIntensity/pyawaitable/blob/master/tests/test_awaitable.py
+# `limit_leaks` copied from
+# https://github.com/ZeroIntensity/pyawaitable/blob/master/tests/test_awaitable.py
 
 from typing import TYPE_CHECKING
 
@@ -99,9 +100,7 @@ BaseNewTypeEmployee = NewType(Employee)
 class Manager(BaseNewTypeEmployee):
     employees: "List[Employee]"
 
-    def __init__(
-        self, employee: Employee, employees: "Optional[List[Employee]]" = None
-    ):
+    def __init__(self, employee: Employee, employees: "Optional[List[Employee]]" = None):
         # LOGGER.debug("Manager.__init__")
         # LOGGER.debug("employee: ", employee)
         # LOGGER.debug("employees: ", employees)
@@ -142,9 +141,7 @@ def test_manager():
     assert promoted_manager.get_employees() == []
     assert promoted_manager.uppercased_name == "JOHN"
 
-    promoted_manager_with_employees = manager.promote_with_employees(
-        [employee_two, employee_three]
-    )
+    promoted_manager_with_employees = manager.promote_with_employees([employee_two, employee_three])
     assert type(promoted_manager_with_employees) is Manager
     assert promoted_manager_with_employees.get_name() == "Manager<John>"
     assert promoted_manager_with_employees.uppercased_name == "JOHN"
@@ -154,10 +151,9 @@ def test_manager():
         employee_three,
     ]
 
-    # normal behavior, this will call Manager(employee="Peter", employees=37) through the classmethod
-    manager_from_dict = promoted_manager_with_employees.from_dict(
-        {"name": "Peter", "age": 37}
-    )
+    # normal behavior,
+    # this will call Manager(employee="Peter", employees=37) through the classmethod
+    manager_from_dict = promoted_manager_with_employees.from_dict({"name": "Peter", "age": 37})
     assert type(manager_from_dict) is Manager
     assert not hasattr(manager_from_dict, "name")
     assert not hasattr(manager_from_dict, "age")
@@ -178,9 +174,7 @@ def test_manager_employees():
         ).get_class_name()
         == "Manager"
     )
-    assert manager_one._newtype_init_kwargs_ == {
-        "employees": [employee_one, employee_two]
-    }
+    assert manager_one._newtype_init_kwargs_ == {"employees": [employee_one, employee_two]}
 
     assert (
         Employee.from_dict.__get__(manager_one, Employee)(

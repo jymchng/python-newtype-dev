@@ -19,7 +19,7 @@ class NRIC(NewType(str)):
 
     def __init__(self, val: "str", hello):
         super().__init__(val)
-        self.__validate__(val)  # valudation
+        self.__validate__(val)  # validation
         self._prefix = val[0]
         self._suffix = val[-1]
         self._digits = val[1:-1]
@@ -27,9 +27,7 @@ class NRIC(NewType(str)):
 
     @newtype_exclude
     def __str__(self):
-        return (
-            f"NRIC(Prefix:{self._prefix}, Suffix:{self._suffix}, Digits:{self._digits})"
-        )
+        return f"NRIC(Prefix:{self._prefix}, Suffix:{self._suffix}, Digits:{self._digits})"
 
     @staticmethod
     def __validate__(nric: "str"):
@@ -188,9 +186,7 @@ class BlockchainAddress(NewType(str), ABC):
 class EthereumAddress(BlockchainAddress):
     @classmethod
     def __newtype__(cls, val: "str"):
-        assert cls._validate_address(
-            val
-        ), f"val = {val} does not match the regex of `Address`"
+        assert cls._validate_address(val), f"val = {val} does not match the regex of `Address`"
 
     def __init__(self, val: "str", is_checksum: "bool", a, b, c):
         super().__init__(val)
@@ -213,9 +209,7 @@ class EthereumAddress(BlockchainAddress):
 
 def test_ethereum_address():
     expected = "0x4838B106FCe9647Bdf1E7877BF73cE8B0BAD5f97"
-    eth_addr = EthereumAddress(
-        "0x4838B106FCe9647Bdf1E7877BF73cE8B0BAD5f97", True, 1, 2, 3
-    )
+    eth_addr = EthereumAddress("0x4838B106FCe9647Bdf1E7877BF73cE8B0BAD5f97", True, 1, 2, 3)
     assert eth_addr == expected
     eth_addr_capitalized = eth_addr.capitalize()
     assert eth_addr.capitalize() == expected.capitalize()
@@ -583,9 +577,7 @@ def test_passport_number_attributes():
 
 @limit_leaks(LEAK_LIMIT)
 def test_license_plate_attributes():
-    license_plate = LicensePlate(
-        "AB123CD", "argX", "argY", region="EU", valid_until=2025
-    )
+    license_plate = LicensePlate("AB123CD", "argX", "argY", region="EU", valid_until=2025)
     assert license_plate == "AB123CD"
     assert license_plate.args == ("argX", "argY")
     assert license_plate.kwargs == {"region": "EU", "valid_until": 2025}
@@ -621,9 +613,7 @@ def test_serial_number_methods():
 
 @limit_leaks(LEAK_LIMIT)
 def test_passport_number_methods():
-    passport = PassportNumber(
-        "P987654321", "argB", issued_country="India", expiration_year=2030
-    )
+    passport = PassportNumber("P987654321", "argB", issued_country="India", expiration_year=2030)
     assert passport == "P987654321"
     assert passport.args == ("argB",)
     assert passport.kwargs == {"issued_country": "India", "expiration_year": 2030}

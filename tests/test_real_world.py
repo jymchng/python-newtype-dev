@@ -40,7 +40,6 @@ def test_config_dict():
         json.dump(configs, temp_file)
 
     try:
-
         # Test loading configuration
         new_config = ConfigDict(config_path)
         assert new_config["api_key"] == "secret123"
@@ -80,7 +79,7 @@ def test_validated_dict():
     schema = {
         "email": {"type": str, "pattern": r"^[\w\.-]+@[\w\.-]+\.\w+$"},
         "age": {"type": int},
-        "name": {"type": str, "pattern": r"^[a-zA-Z\s]+$"}
+        "name": {"type": str, "pattern": r"^[a-zA-Z\s]+$"},
     }
 
     data = ValidatedDict(schema)
@@ -117,7 +116,7 @@ def test_audited_dict():
                 "timestamp": datetime.now().isoformat(),
                 "operation": operation,
                 "key": key,
-                "value": value
+                "value": value,
             }
             with open(self.audit_file, "a") as f:
                 f.write(json.dumps(log_entry) + "\n")

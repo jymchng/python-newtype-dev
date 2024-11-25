@@ -1,5 +1,4 @@
 # Don't manually change, let poetry-dynamic-versioning handle it.
-__version__ = "0.0.0"
 
 __all__: "list[str]" = []
 
@@ -34,9 +33,7 @@ if TYPE_CHECKING:
     T = TypeVar("T")
 
 
-__GLOBAL_INTERNAL_TYPE_CACHE__: "WeakKeyDictionary[Type[T], Type[T]]" = (
-    WeakKeyDictionary()
-)
+__GLOBAL_INTERNAL_TYPE_CACHE__: "WeakKeyDictionary[Type[T], Type[T]]" = WeakKeyDictionary()
 
 
 def newtype_exclude(func):
@@ -55,7 +52,7 @@ def NewType(type_: "Type[T]", **context) -> "Type[T]":  # noqa: N802, C901
             NEWTYPE_LOGGER.debug(f"`{type_}` found in cache")
             return __GLOBAL_INTERNAL_TYPE_CACHE__[type_]
     except KeyError:
-        NEWTYPE_LOGGER.debug("Exception occured but ignored during caching of NewType")
+        NEWTYPE_LOGGER.debug("Exception occurred but ignored during caching of NewType")
         pass
 
     class BaseNewType(type_):
@@ -76,13 +73,10 @@ def NewType(type_: "Type[T]", **context) -> "Type[T]":  # noqa: N802, C901
                 original_cls_dict[k] = v
             NEWTYPE_LOGGER.debug("original_cls_dict: ", original_cls_dict)
             for k, v in type_.__dict__.items():
-                if (
-                    callable(v)
-                    and (k not in object.__dict__)
-                    and (k not in original_cls_dict)
-                ):
+                if callable(v) and (k not in object.__dict__) and (k not in original_cls_dict):
                     NEWTYPE_LOGGER.debug(
-                        "callable(v) and (k not in object.__dict__) and (k not in original_cls_dict); k: ",
+                        "callable(v) and (k not in object.__dict__) and \
+                            (k not in original_cls_dict) ; k: ",
                         k,
                     )
                     setattr(cls, k, NewTypeMethod(v, type_))
@@ -90,7 +84,7 @@ def NewType(type_: "Type[T]", **context) -> "Type[T]":  # noqa: N802, C901
                     if k == "__dict__":
                         continue
                     setattr(cls, k, v)
-                    NEWTYPE_LOGGER.debug("Setted")
+                    NEWTYPE_LOGGER.debug("Set")
             NEWTYPE_LOGGER.debug("original_cls_dict: ", original_cls_dict)
             for k, v in original_cls_dict.items():
                 NEWTYPE_LOGGER.debug("k in original_cls_dict: ", k)
@@ -105,15 +99,13 @@ def NewType(type_: "Type[T]", **context) -> "Type[T]":  # noqa: N802, C901
                     if k == "__dict__":
                         continue
                     setattr(cls, k, v)
-                    NEWTYPE_LOGGER.debug("Setted")
+                    NEWTYPE_LOGGER.debug("Set")
             NEWTYPE_LOGGER.debug("Setting cls.__init__")
             cls.__init__ = NewTypeInit(constructor)
             if hasattr(cls, "__slots__"):
                 NEWTYPE_LOGGER.debug("cls.__slots__: ", cls.__slots__)
             NEWTYPE_LOGGER.debug("Setting cls.__init__ completed")
-            NEWTYPE_LOGGER.debug(
-                "cls.__dict__: ", cls.__dict__, " at end of __init_subclass__"
-            )
+            NEWTYPE_LOGGER.debug("cls.__dict__: ", cls.__dict__, " at end of __init_subclass__")
             return cls
 
         def __new__(cls, value=None, *_args, **_kwargs):
@@ -152,7 +144,8 @@ def NewType(type_: "Type[T]", **context) -> "Type[T]":  # noqa: N802, C901
 
         def __init__(self, _value=None, *_args, **_kwargs):
             ...
-            # we intercept the call to constructors so that we don't accidentally call `object.__init__`
+            # we intercept the call to constructors
+            # so that we don't accidentally call `object.__init__`
 
     try:
         # we try to store it in a cache, if it fails, no problem either
@@ -160,7 +153,7 @@ def NewType(type_: "Type[T]", **context) -> "Type[T]":  # noqa: N802, C901
             NEWTYPE_LOGGER.debug(f"`type_` = {type_} is cached...")
             __GLOBAL_INTERNAL_TYPE_CACHE__[type_] = BaseNewType
     except Exception:
-        NEWTYPE_LOGGER.debug("Exception occured but ignored during caching of NewType")
+        NEWTYPE_LOGGER.debug("Exception occurred but ignored during caching of NewType")
         pass
 
     return BaseNewType

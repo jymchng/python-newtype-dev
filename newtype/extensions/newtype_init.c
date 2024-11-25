@@ -90,21 +90,15 @@ static PyObject* NewTypeInit_call(NewTypeInitObject* self,
                                   PyObject* args,
                                   PyObject* kwds)
 {
-  // printf("NewTypeInit_call is called\n");
+  DEBUG_PRINT("NewTypeInit_call is called\n");
 
-  // printf("NewTypeInit_call: `self->obj`: %s\n",
-  //        PyUnicode_AsUTF8(PyObject_Repr(self->obj)));
-  // printf("NewTypeInit_call: `self->cls`: %s\n",
-  //        PyUnicode_AsUTF8(PyObject_Repr((PyObject*)self->cls)));
+  DEBUG_PRINT("NewTypeInit_call: `self->obj`: %s\n",
+              PyUnicode_AsUTF8(PyObject_Repr(self->obj)));
+  DEBUG_PRINT("NewTypeInit_call: `self->cls`: %s\n",
+              PyUnicode_AsUTF8(PyObject_Repr((PyObject*)self->cls)));
 
   PyObject* result;  // return this
   PyObject* func;
-  // PyObject* args_tuple = PyTuple_New(0);
-
-  // if (self->obj == NULL) {
-  //   printf("`self->obj` is NULL\n");
-  //   self->obj = Py_None;
-  // }
 
   if (self->has_get) {
     if (self->obj == NULL && self->cls == NULL) {
@@ -127,22 +121,18 @@ static PyObject* NewTypeInit_call(NewTypeInitObject* self,
   }
 
   if (func == NULL) {
-    // printf("`func` is NULL\n");
+    DEBUG_PRINT("`func` is NULL\n");
     result = NULL;
     goto done;
   }
-  // `func` is definitely allocated here; need to `Py_XDECREF(func);`
-  // printf("`func`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(func)));
-  // if (args_tuple == NULL) {
-  //   return NULL;
-  // }
 
   if (self->obj
       && (PyObject_HasAttrString(self->obj, NEWTYPE_INIT_ARGS_STR) != 1))
   {
-    // printf("Setting `%s` attribute on `%s` to `%s`\n", NEWTYPE_INIT_ARGS_STR,
-    // PyUnicode_AsUTF8(PyObject_Repr(self->obj)),
-    // PyUnicode_AsUTF8(PyObject_Repr(args)));
+    DEBUG_PRINT("Setting `%s` attribute on `%s` to `%s`\n",
+                NEWTYPE_INIT_ARGS_STR,
+                PyUnicode_AsUTF8(PyObject_Repr(self->obj)),
+                PyUnicode_AsUTF8(PyObject_Repr(args)));
     PyObject* args_slice;
     if (PyTuple_Size(args) > 1) {
       args_slice = PyTuple_GetSlice(args, 1, PyTuple_Size(args));
@@ -154,10 +144,8 @@ static PyObject* NewTypeInit_call(NewTypeInitObject* self,
       args_slice = PyTuple_New(0);
     }
     if (PyObject_SetAttrString(self->obj, NEWTYPE_INIT_ARGS_STR, args_slice)
-        < 0)
-    {
+        < 0) {
       Py_DECREF(args_slice);
-      // Py_DECREF(args_tuple);
       result = NULL;
       goto done;
     }
@@ -167,9 +155,10 @@ static PyObject* NewTypeInit_call(NewTypeInitObject* self,
   if (self->obj
       && (PyObject_HasAttrString(self->obj, NEWTYPE_INIT_KWARGS_STR) != 1))
   {
-    // printf("Setting `%s` attribute on `%s` to `%s`\n", NEWTYPE_INIT_ARGS_STR,
-    // PyUnicode_AsUTF8(PyObject_Repr(self->obj)),
-    // PyUnicode_AsUTF8(PyObject_Repr(kwds)));
+    DEBUG_PRINT("Setting `%s` attribute on `%s` to `%s`\n",
+                NEWTYPE_INIT_ARGS_STR,
+                PyUnicode_AsUTF8(PyObject_Repr(self->obj)),
+                PyUnicode_AsUTF8(PyObject_Repr(kwds)));
     if (kwds == NULL) {  // `kwds` is `NULL`, first time the constructor is
                          // called, so we make a new `dict`.
       kwds = PyDict_New();
@@ -177,14 +166,13 @@ static PyObject* NewTypeInit_call(NewTypeInitObject* self,
       Py_INCREF(kwds);
     }
     if (PyObject_SetAttrString(self->obj, NEWTYPE_INIT_KWARGS_STR, kwds) < 0) {
-      // Py_DECREF(args_tuple);
       result = NULL;
       goto done;
     }
   }
 
-  // printf("`args`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(args)));
-  // printf("`kwds`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(kwds)));
+  DEBUG_PRINT("`args`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(args)));
+  DEBUG_PRINT("`kwds`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(kwds)));
 
   // Ensure `self->cls` is a valid type object
   if (self->cls && PyType_Check(self->cls)) {
@@ -193,19 +181,16 @@ static PyObject* NewTypeInit_call(NewTypeInitObject* self,
     PyErr_SetString(PyExc_TypeError, "Invalid type object in descriptor");
     result = NULL;
   }
-  // printf("`result`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(result)));
 
   if (PyErr_Occurred()) {
     // Py_DECREF(args_tuple);
     goto done;
   }
 
-// Py_DECREF(args_tuple);
-// Py_DECREF(func);
-// printf("`result`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(result)));
 done:
   Py_XDECREF(func);
   Py_XDECREF(kwds);
+  DEBUG_PRINT("`result`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(result)));
   return result;
 }
 
