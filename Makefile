@@ -8,15 +8,33 @@ PROJECT_DIR := newtype
 SRC := src
 EXTENSIONS := extensions
 
+# Docker
+DOCKER_IMAGE := python-newtype-demo
+DOCKER_TAG := latest
+DOCKERFILE_PATH := tests/Dockerfile
+
 # Files and directories
 SO_FILES := newtypemethod.cpython-*-linux-gnu.so newtypeinit.cpython-*-linux-gnu.so $(PROJECT_DIR)/$(EXTENSIONS)/newtypemethod.cpython-*-linux-gnu.so $(PROJECT_DIR)/$(EXTENSIONS)/newtypeinit.cpython-*-linux-gnu.so
 BUILD_DIR := build
 PYTEST_FLAGS := -s -vv
 
-.PHONY: all clean build test test-all test-debug test-custom test-free test-slots test-init test-leak install lint format check venv-poetry clean-deps
+.PHONY: all clean build test test-all test-debug test-custom test-free test-slots test-init test-leak install lint format check venv-poetry clean-deps docker-build docker-run docker-clean docker-demo
 
 # Default target
 all: clean build test format check venv-poetry clean-deps
+
+# Docker targets
+docker-build: build
+	docker build -t $(DOCKER_IMAGE):$(DOCKER_TAG) -f $(DOCKERFILE_PATH) .
+
+docker-run:
+	docker run --rm $(DOCKER_IMAGE):$(DOCKER_TAG)
+
+docker-clean:
+	docker rmi $(DOCKER_IMAGE):$(DOCKER_TAG)
+
+# Run complete Docker demo cycle: build, run, clean
+docker-demo: docker-build docker-run docker-clean
 
 # Check code quality
 check:
@@ -41,11 +59,11 @@ clean-deps:
 	pip freeze | xargs pip uninstall -y
 
 # Build extensions
-build:
+build: clean
 	$(POETRY) build
 
 # Build with debug printing enabled
-build-debug:
+build-debug: clean
 	export __PYNT_DEBUG__="true" && make build
 
 # Install dependencies
