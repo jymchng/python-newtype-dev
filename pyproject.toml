@@ -13,11 +13,11 @@ description = ""
 authors = ["Jim Chng <jimchng@outlook.com>"]
 readme = "README.md"
 # tuple index out of range error occurs if include = "."
-packages = [{ include = "src/newtype" }]
+packages = [{ include = "newtype" }]
 include = [
-    { path = "src/newtype/*.so" },
-    { path = "src/newtype/*" },
-    { path = "src/newtype/extensions/**" }, # need to include this for the packager to include it in the distribution
+    { path = "newtype/*.so" },
+    { path = "newtype/*" },
+    { path = "newtype/extensions/**" }, # need to include this for the packager to include it in the distribution
 ]
 
 [tool.poetry.build]
@@ -93,7 +93,7 @@ exclude_lines = [
 venvPath = "."
 venv = ".venv"
 extraPaths = ["tests/"]
-include = ["src/newtype"]
+include = ["newtype"]
 exclude = ["**/__pycache__", "build_helpers/*.py"]
 # ignore = ["freqtrade/vendor/**"]
 
@@ -252,7 +252,7 @@ ignore-words-list = "coo,fo,strat,zar,selectin"
 
 [tool.creosote]
 venvs = [".venv"]
-paths = ["src/newtype"]
+paths = ["newtype"]
 deps-file = "pyproject.toml"
 sections = ["tool.poetry.dependencies"]
 exclude-deps = ["typing-extensions"]
@@ -263,12 +263,12 @@ zip-safe = false
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["src/newtype*"]
+include = ["newtype*"]
 exclude = ["tests", "tests.*"]
 namespaces = true
 
 [tool.setuptools.dynamic]
-version = { attr = "src/newtype.__version__" }
+version = { attr = "newtype.__version__" }
 
 [tool.black]
 line-length = 100
@@ -315,7 +315,7 @@ exclude = [
     'docs/*',
     'scripts/*',
     '/*.sh',
-    'src/newtype/*.pyi',
+    'newtype/*.pyi',
 ]
 # plugins = [""]
 

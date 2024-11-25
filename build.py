@@ -63,7 +63,7 @@ PACKAGE_NAME = get_package_name()
 ALLOWED_TO_FAIL = False
 REMOVE_HTML_ANNOTATION_FILES = True
 PACKAGE_DIR = PROJECT_ROOT_DIR / PACKAGE_NAME
-PROJECT_C_SOURCE_DIR_NAME = "src/newtype/extensions"
+PROJECT_C_SOURCE_DIR_NAME = "newtype/extensions"
 PROJECT_C_SOURCE_DIR = PROJECT_ROOT_DIR / PROJECT_C_SOURCE_DIR_NAME
 C_SOURCE_FILES = [str(x) for x in PROJECT_C_SOURCE_DIR.rglob("*.c")]
 
@@ -128,15 +128,15 @@ def get_extension_modules():
 
     module_newtypemethod = Extension(
     "newtype.extensions.newtypemethod",
-    sources=["src/newtype/extensions/newtype_meth.c"],
-    include_dirs=["src/newtype/extensions"],
+    sources=["newtype/extensions/newtype_meth.c"],
+    include_dirs=["newtype/extensions"],
     extra_compile_args=["-D__DEBUG_PRINT__"] if debug_print else [],
 )
 
     module_newtypeinit = Extension(
         "newtype.extensions.newtypeinit",
-        sources=["src/newtype/extensions/newtype_init.c"],
-        include_dirs=["src/newtype/extensions"],
+        sources=["newtype/extensions/newtype_init.c"],
+        include_dirs=["newtype/extensions"],
         extra_compile_args=["-D__DEBUG_PRINT__"] if debug_print else [],
     )
 
@@ -154,7 +154,7 @@ def copy_output_to_cmd_buildlib(cmd):
     for output in build_outputs:
         output = Path(output)
         relative_extension = output.relative_to(cmd.build_lib)
-        relative_extension_path = PROJECT_ROOT_DIR / 'src' / relative_extension
+        relative_extension_path = PROJECT_ROOT_DIR / relative_extension
         LOGGER.info(f"Copying file from `{output}` to `{relative_extension_path}`")
         shutil.copyfile(output, relative_extension_path)
         LOGGER.info("File copied successfully")

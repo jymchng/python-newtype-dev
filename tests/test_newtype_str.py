@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 import pytest
 from conftest import LEAK_LIMIT, limit_leaks
 
-from src.newtype import NewType, newtype_exclude
+from newtype import NewType, newtype_exclude
 
 
 if TYPE_CHECKING:

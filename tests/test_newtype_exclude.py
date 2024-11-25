@@ -1,6 +1,6 @@
 import pytest
 
-from src.newtype import func_is_excluded, newtype_exclude
+from newtype import func_is_excluded, newtype_exclude
 
 
 def test_newtype_exclude():

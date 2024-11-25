@@ -9,12 +9,12 @@ from logging import getLogger
 from typing import TYPE_CHECKING
 from weakref import WeakKeyDictionary
 
-from src.newtype.extensions.newtypeinit import (
+from .extensions.newtypeinit import (
     NEWTYPE_INIT_ARGS_STR,
     NEWTYPE_INIT_KWARGS_STR,
     NewTypeInit,
 )
-from src.newtype.extensions.newtypemethod import NewTypeMethod
+from .extensions.newtypemethod import NewTypeMethod
 
 
 NEWTYPE_LOGGER = getLogger("newtype-python")

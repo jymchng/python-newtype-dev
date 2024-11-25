@@ -53,10 +53,8 @@ static PyObject* NewTypeInit_get(NewTypeInitObject* self,
   DEBUG_PRINT("NewTypeInit_get: `owner`: %s\n",
               PyUnicode_AsUTF8(PyObject_Repr(owner)));
 
-  // Py_XINCREF(inst);
   self->obj = inst;
   Py_XINCREF(self->obj);
-  // Py_XINCREF(owner);
   self->cls = (PyTypeObject*)owner;
   Py_XINCREF(self->cls);
 
