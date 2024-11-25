@@ -37,37 +37,31 @@ nav:
     - Type Wrapping: user-guide/type-wrapping.md
     - Method Interception: user-guide/method-interception.md
     - Custom Initialization: user-guide/custom-initialization.md
+    - String Types: user-guide/string-types.md
+    - Examples: user-guide/examples.md
   - Advanced Topics:
     - Type Inheritance: advanced-topics/type-inheritance.md
     - Method Interception: advanced-topics/method-interception.md
-  - Examples:
-    - Basic Examples: examples/basic_examples.md
-    - Advanced Examples: examples/advanced_examples.md
-    - Real-world Use Cases: examples/real_world.md
   - API Reference:
     - NewType: api/newtype.md
     - Extensions: api/extensions.md
   - Development:
     - Contributing: development/contributing.md
-    - Building from Source: development/building.md
+    - Building: development/building.md
     - Testing: development/testing.md
     - Performance: development/performance.md
-  - About:
-    - License: about/license.md
-    - Changelog: about/changelog.md
 
 markdown_extensions:
   - admonition
   - codehilite
   - footnotes
-  - toc:
-      permalink: true
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.superfences
-  - pymdownx.details
+  - toc:
+      permalink: true
 
 plugins:
   - search

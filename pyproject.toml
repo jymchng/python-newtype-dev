@@ -262,7 +262,7 @@ staticmethod-decorators = ["pydantic.validator", "pydantic.root_validator"]
 
 [tool.codespell]
 skip = 'poetry.lock,sources/*.c,sources/*.pyx,sources/*.pxd'
-ignore-words-list = "coo,fo,strat,zar,selectin"
+ignore-words-list = "coo,fo,strat,zar,selectin,nam"
 
 [tool.creosote]
 venvs = [".venv"]
