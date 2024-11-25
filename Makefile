@@ -18,7 +18,7 @@ SO_FILES := newtypemethod.cpython-*-linux-gnu.so newtypeinit.cpython-*-linux-gnu
 BUILD_DIR := build
 PYTEST_FLAGS := -s -vv
 
-.PHONY: all clean build test test-all test-debug test-custom test-free test-slots test-init test-leak install lint format check venv-poetry clean-deps docker-build docker-run docker-clean docker-demo
+.PHONY: all clean build test test-all test-debug test-custom test-free test-slots test-init test-leak install lint format check venv-poetry clean-deps docker-build docker-run docker-clean docker-demo dist-contents
 
 # Default target
 all: clean build test format check venv-poetry clean-deps
@@ -35,6 +35,10 @@ docker-clean:
 
 # Run complete Docker demo cycle: build, run, clean
 docker-demo: docker-build docker-run docker-clean
+
+# Distribution targets
+dist-contents: build
+	tar -tzf dist/python_newtype_dev-*.tar.gz
 
 # Check code quality
 check:
