@@ -122,6 +122,7 @@ exclude = [
     ".venv",
     "build.py",
     "scripts/",
+    "tests/",
 ]
 
 [tool.ruff.format]

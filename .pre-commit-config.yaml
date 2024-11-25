@@ -88,3 +88,11 @@ repos:
       files: '(newtype)/.*\.py$'  # Single quote critical due to escape character '\' used in RegEx search string (see YAML - 7.3 Flow Scalar Styles)
       args: [--config-file=./pyproject.toml, --ignore-missing-imports, --scripts-are-modules]
       exclude: '(docs|tests)/.*\.py$'
+
+  - repo: local
+    hooks:
+      - id: make-dev
+        name: Run make dev
+        entry: make dev
+        language: system
+        types: [python]
