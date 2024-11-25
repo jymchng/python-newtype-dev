@@ -116,7 +116,7 @@ def NewType(type_: "Type[T]", **context) -> "Type[T]":  # noqa: N802, C901
             )
             return cls
 
-        def __new__(cls, value, *_args, **_kwargs):
+        def __new__(cls, value=None, *_args, **_kwargs):
             NEWTYPE_LOGGER.debug("cls, cls.__new__: ", cls, cls.__new__)
             if type_.__new__ == object.__new__:
                 NEWTYPE_LOGGER.debug(
@@ -150,7 +150,7 @@ def NewType(type_: "Type[T]", **context) -> "Type[T]":  # noqa: N802, C901
                 inst = type_.__new__(cls, value)
             return inst
 
-        def __init__(self, _value, *_args, **_kwargs):
+        def __init__(self, _value=None, *_args, **_kwargs):
             ...
             # we intercept the call to constructors so that we don't accidentally call `object.__init__`
 

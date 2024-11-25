@@ -37,6 +37,10 @@ nav:
     - Type Wrapping: user-guide/type-wrapping.md
     - Method Interception: user-guide/method-interception.md
     - Custom Initialization: user-guide/custom-initialization.md
+  - Examples:
+    - Basic Examples: examples/basic_examples.md
+    - Advanced Examples: examples/advanced_examples.md
+    - Real-world Use Cases: examples/real_world.md
   - API Reference:
     - NewType: api/newtype.md
     - Extensions: api/extensions.md
@@ -44,6 +48,7 @@ nav:
     - Contributing: development/contributing.md
     - Building from Source: development/building.md
     - Testing: development/testing.md
+    - Performance: development/performance.md
   - About:
     - License: about/license.md
     - Changelog: about/changelog.md

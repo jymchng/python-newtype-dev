@@ -19,6 +19,15 @@ include = [
     { path = "newtype/*" },
     { path = "newtype/extensions/**" }, # need to include this for the packager to include it in the distribution
 ]
+exclude = [
+    { path = "tests/*"},
+    { path = "examples/*"},
+    { path = "scripts/*"},
+    { path = "build/*"},
+    { path = "build-dev/*"},
+    { path = "dist/*"},
+    { path = "docs/*"},
+]
 
 [tool.poetry.build]
 script = "build.py"
