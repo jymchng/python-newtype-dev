@@ -37,6 +37,9 @@ nav:
     - Type Wrapping: user-guide/type-wrapping.md
     - Method Interception: user-guide/method-interception.md
     - Custom Initialization: user-guide/custom-initialization.md
+  - Advanced Topics:
+    - Type Inheritance: advanced-topics/type-inheritance.md
+    - Method Interception: advanced-topics/method-interception.md
   - Examples:
     - Basic Examples: examples/basic_examples.md
     - Advanced Examples: examples/advanced_examples.md
