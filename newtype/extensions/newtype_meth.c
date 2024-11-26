@@ -254,9 +254,11 @@ static int NewTypeMethodObject_clear(PyObject* self)
 }
 
 static PyMemberDef newtypemethodobject_members[] = {
-    {"__isabstractmethod__", T_OBJECT, offsetof(NewTypeMethodObject, __isabstractmethod__), READONLY},
-    {0}
-};
+    {"__isabstractmethod__",
+     T_OBJECT,
+     offsetof(NewTypeMethodObject, __isabstractmethod__),
+     READONLY},
+    {0}};
 
 // Type definition
 PyTypeObject NewTypeMethodType = {
