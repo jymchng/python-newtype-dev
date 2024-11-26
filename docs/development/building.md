@@ -1,10 +1,10 @@
-# Building Python NewType
+# Building python-newtype
 
-This guide covers how to build and package Python NewType for development and distribution.
+This guide covers how to build and package python-newtype for development and distribution.
 
 ## Prerequisites
 
-Before building Python NewType, ensure you have the following installed:
+Before building python-newtype, ensure you have the following installed:
 
 - Python 3.7 or later
 - Poetry (for dependency management)

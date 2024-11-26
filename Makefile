@@ -71,8 +71,8 @@ build-debug: clean
 	export __PYNT_DEBUG__="true" && make build
 
 # Install dependencies
-install:
-	$(PYTHON) -m pip install -r requirements.txt
+install: build
+	$(PYTHON) -m pip install dist/python_newtype-0.1.0-*.whl
 
 # Run all tests
 test:

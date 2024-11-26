@@ -1,4 +1,4 @@
-site_name: Python NewType
+site_name: python-newtype
 site_description: A Python library for extending existing types with additional functionality
 site_author: openhands
 repo_url: https://github.com/jymchng/python-newtype-dev

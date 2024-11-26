@@ -1,4 +1,4 @@
-"""Python NewType Library: Advanced Type System for Python.
+"""python-newtype Library: Advanced Type System for Python.
 
 This library provides a powerful and flexible way to create new types in Python that
 maintain proper type information and behavior. It allows for the creation of subtypes

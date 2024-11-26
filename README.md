@@ -1,19 +1,18 @@
-# Python NewType
+# python-newtype
 
 [![PyPI version](https://badge.fury.io/py/python-newtype.svg)](https://badge.fury.io/py/python-newtype)
 [![Python Versions](https://img.shields.io/pypi/pyversions/python-newtype.svg)](https://pypi.org/project/python-newtype/)
 [![Documentation Status](https://readthedocs.org/projects/python-newtype/badge/?version=latest)](https://python-newtype.readthedocs.io/en/latest/?badge=latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A powerful Python library for extending existing types with additional functionality while preserving their original behavior.
+A powerful Python library for extending existing types with additional functionality while preserving their original behavior, type information and subtype invariances.
 
 ## Features
 
-- **Type Wrapping**: Seamlessly wrap existing Python types with new functionality
-- **Method Interception**: Intercept and modify method calls with custom processing
+- **Type Wrapping**: Seamlessly wrap existing Python types with new functionality and preservation of subtype invariances when using methods of supertype
 - **Custom Initialization**: Control object initialization with special handling
 - **Attribute Preservation**: Maintains both `__dict__` and `__slots__` attributes
-- **Memory Efficient**: Uses weak references for caching to prevent memory leaks
+- **Memory Efficient**: Uses weak references for caching
 - **Debug Support**: Built-in debug printing capabilities for development
 - **Async Support**: Full support for asynchronous methods and operations
 
@@ -34,7 +33,7 @@ from newtype import NewType
 class EnhancedStr(NewType(str)):
     def reverse(self):
         return self[::-1]
-    
+
     def count_words(self):
         return len(self.split())
 
@@ -75,6 +74,14 @@ For detailed documentation, visit [python-newtype.readthedocs.io](https://python
 git clone https://github.com/jymchng/python-newtype-dev.git
 cd python-newtype-dev
 make build
+```
+
+### Install from Source
+
+```bash
+git clone https://github.com/jymchng/python-newtype-dev.git
+cd python-newtype-dev
+make install
 ```
 
 ### Running Tests

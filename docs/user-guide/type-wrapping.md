@@ -1,6 +1,6 @@
 # Type Wrapping
 
-Type wrapping is a fundamental concept in Python NewType that allows you to create enhanced versions of existing types with additional functionality.
+Type wrapping is a fundamental concept in python-newtype that allows you to create enhanced versions of existing types with additional functionality.
 
 ## Basic Type Wrapping
 

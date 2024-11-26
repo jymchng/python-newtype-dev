@@ -1,10 +1,10 @@
 # Type Inheritance and Composition
 
-This guide covers advanced topics related to type inheritance and composition using Python NewType.
+This guide covers advanced topics related to type inheritance and composition using python-newtype.
 
 ## Multiple Inheritance
 
-Python NewType supports multiple inheritance, allowing you to combine functionality from multiple base types:
+python-newtype supports multiple inheritance, allowing you to combine functionality from multiple base types:
 
 ```python
 from newtype import NewType

@@ -1,10 +1,10 @@
 # Performance Considerations
 
-This document outlines performance considerations when using Python NewType and provides guidance on optimizing your code.
+This document outlines performance considerations when using python-newtype and provides guidance on optimizing your code.
 
 ## Memory Usage
 
-Python NewType is designed to be memory-efficient, with minimal overhead compared to the base types being wrapped. However, there are a few things to keep in mind:
+python-newtype is designed to be memory-efficient, with minimal overhead compared to the base types being wrapped. However, there are a few things to keep in mind:
 
 1. Each wrapped instance maintains a reference to its base class
 2. Additional attributes and methods will consume extra memory
@@ -81,7 +81,7 @@ class CachedStr(NewType(str)):
     def __init__(self, *args, **kwargs):
         super().__init__()
         self._reversed = None
-    
+
     def reverse(self):
         if self._reversed is None:
             self._reversed = self[::-1]
@@ -95,7 +95,7 @@ When creating many instances, use __slots__ to reduce memory usage:
 ```python
 class MemoryEfficientStr(NewType(str)):
     __slots__ = ['_cached_value']
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__()
         self._cached_value = None
@@ -121,13 +121,13 @@ class EnhancedStr(NewType(str)):
 regular_str = "hello" * 100
 enhanced_str = EnhancedStr("hello" * 100)
     """
-    
+
     regular_code = "regular_str.upper()"
     enhanced_code = "enhanced_str.upper()"
-    
+
     regular_time = timeit.timeit(regular_code, setup=setup, number=100000)
     enhanced_time = timeit.timeit(enhanced_code, setup=setup, number=100000)
-    
+
     print(f"Regular string: {regular_time:.4f}s")
     print(f"Enhanced string: {enhanced_time:.4f}s")
 ```
@@ -143,12 +143,12 @@ from memory_profiler import profile
 def memory_test():
     # Regular dict
     d1 = {str(i): i for i in range(1000)}
-    
+
     # NewType dict
     class TrackedDict(NewType(dict)):
         def __setitem__(self, key, value):
             super().__setitem__(key, value)
-    
+
     d2 = TrackedDict()
     for i in range(1000):
         d2[str(i)] = i

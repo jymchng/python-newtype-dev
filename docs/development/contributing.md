@@ -1,6 +1,6 @@
 # Contributing Guide
 
-Thank you for considering contributing to Python NewType! This document provides guidelines and instructions for contributing.
+Thank you for considering contributing to python-newtype! This document provides guidelines and instructions for contributing.
 
 ## Development Setup
 

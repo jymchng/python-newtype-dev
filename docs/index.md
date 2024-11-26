@@ -1,12 +1,12 @@
-# Python NewType Documentation
+# python-newtype Documentation
 
-Welcome to the Python NewType documentation! This library implements a powerful type system feature from type theory, allowing you to create true subtypes that maintain type consistency throughout method calls.
+Welcome to the python-newtype documentation! This library implements a powerful type system feature from type theory, allowing you to create true subtypes that maintain type consistency throughout method calls.
 
 ## Overview
 
-Python NewType is unique in its implementation of the "new type" concept from type theory. The key feature is its ability to maintain subtype relationships through method calls:
+python-newtype is unique in its implementation of the "new type" concept from type theory. The key feature is its ability to maintain subtype relationships through method calls:
 
-- When a supertype method returns a value of the supertype, Python NewType automatically instantiates a value of the subtype
+- When a supertype method returns a value of the supertype, python-newtype automatically instantiates a value of the subtype
 - This ensures that operations on subtypes always return values of the subtype, not the supertype
 - The type consistency is maintained throughout the entire chain of method calls
 
@@ -82,7 +82,7 @@ filtered = filter(lambda x: x > 20, numbers)  # Result maintains ValidatedList t
 
 ## Type Theory Implementation
 
-Python NewType implements the theoretical concept that if `S` is a subtype of `T`, then any operation that returns a value of type `T` should return a value of type `S` when applied to values of type `S`. This ensures:
+python-newtype implements the theoretical concept that if `S` is a subtype of `T`, then any operation that returns a value of type `T` should return a value of type `S` when applied to values of type `S`. This ensures:
 
 1. **Type Safety**: Operations on subtypes never "leak" back to supertypes
 2. **Behavioral Subtyping**: Subtypes maintain their invariants through all operations
@@ -91,7 +91,7 @@ Python NewType implements the theoretical concept that if `S` is a subtype of `T
 
 ## Getting Started
 
-Check out our [Quick Start Guide](getting-started/quickstart.md) to begin using Python NewType in your projects.
+Check out our [Quick Start Guide](getting-started/quickstart.md) to begin using python-newtype in your projects.
 
 ## Installation
 

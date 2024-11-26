@@ -1,6 +1,6 @@
 # Custom Initialization
 
-This guide covers advanced techniques for customizing the initialization of wrapped types in Python NewType.
+This guide covers advanced techniques for customizing the initialization of wrapped types in python-newtype.
 
 ## Basic Initialization
 

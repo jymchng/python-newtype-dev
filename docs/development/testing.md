@@ -1,6 +1,6 @@
-# Testing Python NewType
+# Testing python-newtype
 
-This guide covers testing strategies and best practices for Python NewType.
+This guide covers testing strategies and best practices for python-newtype.
 
 ## Test Structure
 

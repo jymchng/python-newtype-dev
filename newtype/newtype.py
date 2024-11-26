@@ -1,4 +1,4 @@
-"""Core implementation of the Python NewType library.
+"""Core implementation of the python-newtype library.
 
 This module provides the main functionality for creating new types that preserve their
 type information through all operations. It implements method interception, type

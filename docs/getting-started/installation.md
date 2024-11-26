@@ -2,7 +2,7 @@
 
 ## Requirements
 
-Before installing Python NewType, ensure you have:
+Before installing python-newtype, ensure you have:
 
 - Python 3.8 or higher
 - pip (Python package installer)
@@ -12,7 +12,7 @@ Before installing Python NewType, ensure you have:
 
 ### From PyPI (Recommended)
 
-The simplest way to install Python NewType is via pip:
+The simplest way to install python-newtype is via pip:
 
 ```bash
 pip install python-newtype

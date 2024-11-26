@@ -1,10 +1,10 @@
-# Python NewType
+# python-newtype
 
 A Python library that provides a powerful type wrapping mechanism for extending existing Python types with additional functionality while preserving their original behavior.
 
 ## Overview
 
-Python NewType is a library that allows you to create enhanced versions of existing Python types by wrapping them with additional functionality. It's particularly useful when you need to:
+python-newtype is a library that allows you to create enhanced versions of existing Python types by wrapping them with additional functionality. It's particularly useful when you need to:
 
 - Add new methods or modify existing ones while maintaining the original type's behavior
 - Intercept and modify object initialization

@@ -1,6 +1,6 @@
 # Method Interception and Customization
 
-This guide covers advanced techniques for intercepting and customizing method behavior in Python NewType.
+This guide covers advanced techniques for intercepting and customizing method behavior in python-newtype.
 
 ## Basic Method Interception
 

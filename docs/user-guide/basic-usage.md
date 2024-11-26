@@ -1,17 +1,16 @@
 # Basic Usage Guide
 
-This guide covers the fundamental concepts and patterns for using Python NewType effectively.
+This guide covers the fundamental concepts and patterns for using `python-newtype` effectively.
 
 ## Core Concepts
 
 ### Type Wrapping
 
-Python NewType allows you to extend existing Python types while preserving their original behavior. When you wrap a type:
+`python-newtype` allows you to extend existing Python types while preserving their original behavior. When you wrap a type:
 
-1. All original methods are preserved
+1. All original methods are preserved and whenever it returns a value of the supertype, python-newtype will attempt to construct it as a value of the subtype
 2. New methods can be added
 3. Existing methods can be modified
-4. Special methods (`__init__`, `__new__`, etc.) can be customized
 
 ```python
 from newtype import NewType
@@ -69,7 +68,7 @@ class ValidatedList(NewType(list)):
     def __init__(self, *args, validator=None):
         super().__init__(*args)
         self.validator = validator or (lambda x: True)
-    
+
     def append(self, item):
         if not self.validator(item):
             raise ValueError("Invalid item")
@@ -90,10 +89,10 @@ class Person(NewType(object)):
     def __init__(self, name, age):
         self.name = name
         self.age = age
-    
+
     def __str__(self):
         return f"{self.name} ({self.age} years old)"
-    
+
     def __repr__(self):
         return f"Person(name='{self.name}', age={self.age})"
 
@@ -106,12 +105,12 @@ print(repr(person))    # Person(name='Alice', age=30)
 
 ### Using __slots__
 
-Python NewType properly handles classes with `__slots__`:
+`python-newtype` properly handles classes with `__slots__`:
 
 ```python
 class Point(NewType(object)):
     __slots__ = ('x', 'y')
-    
+
     def __init__(self, x, y):
         self.x = x
         self.y = y
@@ -129,17 +128,17 @@ Properties work as expected:
 class Circle(NewType(object)):
     def __init__(self, radius):
         self._radius = radius
-    
+
     @property
     def radius(self):
         return self._radius
-    
+
     @radius.setter
     def radius(self, value):
         if value < 0:
             raise ValueError("Radius cannot be negative")
         self._radius = value
-    
+
     @property
     def area(self):
         return 3.14159 * self._radius ** 2

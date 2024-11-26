@@ -18,7 +18,7 @@
 
 ## Type System Components
 
-These are internal components that power Python NewType. While they're not typically used directly, understanding them can be helpful for advanced usage or debugging.
+These are internal components that power python-newtype. While they're not typically used directly, understanding them can be helpful for advanced usage or debugging.
 
 ### NewTypeInit Descriptor
 

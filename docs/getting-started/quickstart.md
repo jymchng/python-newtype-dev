@@ -1,6 +1,6 @@
 # Quick Start Guide
 
-This guide will help you get started with Python NewType quickly. We'll cover basic usage and common patterns.
+This guide will help you get started with python-newtype quickly. We'll cover basic usage and common patterns.
 
 ## Basic Usage
 
@@ -13,7 +13,7 @@ from newtype import NewType
 class EnhancedStr(NewType(str)):
     def reverse(self):
         return self[::-1]
-    
+
     def count_words(self):
         return len(self.split())
 
@@ -31,7 +31,7 @@ class LoggedList(NewType(list)):
     def append(self, item):
         print(f"Adding item: {item}")
         super().append(item)
-    
+
     def pop(self, index=-1):
         item = super().pop(index)
         print(f"Removed item: {item}")
@@ -53,7 +53,7 @@ class TypedList(NewType(list)):
         if items:
             for item in items:
                 self.append(item)
-    
+
     def append(self, item):
         if not isinstance(item, self.item_type):
             raise TypeError(f"Expected {self.item_type}, got {type(item)}")
@@ -75,7 +75,7 @@ class AsyncList(NewType(list)):
     async def async_append(self, item):
         await asyncio.sleep(0.1)  # Simulate async operation
         self.append(item)
-    
+
     async def async_pop(self):
         await asyncio.sleep(0.1)  # Simulate async operation
         return self.pop()
@@ -112,11 +112,11 @@ d.clear()  # Prints: Clear operation not allowed
 ```python
 class Point(NewType(object)):
     __slots__ = ('x', 'y')
-    
+
     def __init__(self, x, y):
         self.x = x
         self.y = y
-    
+
     def distance(self):
         return (self.x ** 2 + self.y ** 2) ** 0.5
 

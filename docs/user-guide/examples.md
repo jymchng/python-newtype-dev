@@ -1,6 +1,6 @@
 # Examples
 
-This guide provides practical examples of using Python NewType in various scenarios.
+This guide provides practical examples of using python-newtype in various scenarios.
 
 ## Basic Examples
 

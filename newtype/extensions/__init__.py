@@ -1,7 +1,7 @@
-"""Extension modules for Python NewType.
+"""Extension modules for python-newtype.
 
 This package contains C extension modules that implement core functionality
-for the Python NewType library:
+for the python-newtype library:
 
 - newtypeinit: Handles initialization and validation of NewType instances
 - newtypemethod: Ensures proper type preservation in method calls
