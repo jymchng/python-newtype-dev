@@ -35,6 +35,8 @@ def test_timed_dict():
 
 
 def test_email_str():
+    from functools import cached_property
+
     class EmailStr(NewType(str)):
         def __init__(self, value: str, strict: bool = True):
             if strict and "@" not in value:
@@ -47,9 +49,46 @@ def test_email_str():
                 return self.split("@")[1]
             return None
 
+        @cached_property
+        def name(self) -> Optional[str]:
+            if "@" in self:
+                return self.split("@")[0]
+            return None
+
+        @staticmethod
+        def from_str(s: str) -> "EmailStr":
+            return EmailStr(s)
+
+    class Gmail(EmailStr):
+        def __init__(self, value: str, strict: bool = True):
+            if strict and "@gmail.com" not in value:
+                raise ValueError("Invalid email format")
+            super().__init__(value, strict)
+
+    gmail = Gmail("hello@gmail.com")
+    assert gmail.domain == "gmail.com"
+    assert gmail.name == "hello"
+    assert isinstance(gmail.domain, str)
+    with pytest.raises(AssertionError):
+        assert isinstance(gmail.domain, Gmail)
+
+    gmail = Gmail.from_str("hello@gmail.com")
+    assert gmail.domain == "gmail.com"
+    assert gmail.name == "hello"
+    assert isinstance(gmail, str)
+    assert isinstance(gmail, EmailStr)
+    with pytest.raises(AssertionError):
+        # `@staticmethod` is not wrapped
+        assert isinstance(gmail, Gmail)
+
+    assert isinstance(gmail, str)
+    with pytest.raises(AssertionError):
+        assert isinstance(gmail, Gmail)
+
     # Test valid email
     email = EmailStr("user@example.com")
     assert email.domain == "example.com"
+    assert email.name == "user"
     assert isinstance(email, str)
     assert isinstance(email, EmailStr)
     assert len(email) == len("user@example.com")
@@ -60,6 +99,11 @@ def test_email_str():
     # Test invalid email with strict mode
     with pytest.raises(ValueError):
         EmailStr("invalid")
+
+    new_email = email.replace("user@example.com", "user1@example.com")
+    assert isinstance(new_email, EmailStr)
+    assert new_email.name == "user1"
+    assert new_email.domain == "example.com"
 
     # Test invalid email with non-strict mode
     non_strict = EmailStr("invalid", strict=False)
