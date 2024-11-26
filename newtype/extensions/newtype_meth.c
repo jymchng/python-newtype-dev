@@ -237,16 +237,36 @@ static void NewTypeMethod_dealloc(NewTypeMethodObject* self)
 // Method definitions
 static PyMethodDef NewTypeMethod_methods[] = {{NULL, NULL, 0, NULL}};
 
+static int NewTypeMethodObject_traverse(PyObject* self,
+                                        visitproc visit,
+                                        void* arg)
+{
+  NewTypeMethodObject *pp = (NewTypeMethodObject*)self;
+  Py_VISIT(pp->cls);
+  Py_VISIT(pp->obj);
+  Py_VISIT(pp->wrapped_cls);
+  return 0;
+}
+
+static int NewTypeMethodObject_clear(PyObject* self)
+{
+  NewTypeMethodObject* pp = (NewTypeMethodObject*)self;
+  Py_CLEAR(pp->cls);
+  Py_CLEAR(pp->obj);
+  Py_CLEAR(pp->wrapped_cls);
+  return 0;
+}
+
 // Type definition
 PyTypeObject NewTypeMethodType = {
-    PyVarObject_HEAD_INIT(NULL, 0).tp_name = "newtypemethod.NewTypeMethod",
+    PyVarObject_HEAD_INIT(&PyType_Type, 0).tp_name = "newtypemethod.NewTypeMethod",
     .tp_doc =
         "A descriptor class that wraps around regular methods of a class "
         "to allow instantiation of the subtype if the method returns an "
         "instance of the supertype.",
     .tp_basicsize = sizeof(NewTypeMethodObject),
     .tp_itemsize = 0,
-    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
     .tp_new = PyType_GenericNew,
     .tp_init = (initproc)NewTypeMethod_init,
     .tp_dealloc = (destructor)NewTypeMethod_dealloc,
@@ -254,6 +274,8 @@ PyTypeObject NewTypeMethodType = {
     .tp_getattro = PyObject_GenericGetAttr,
     .tp_methods = NewTypeMethod_methods,
     .tp_descr_get = (descrgetfunc)NewTypeMethod_get,
+    .tp_traverse = NewTypeMethodObject_traverse,
+    .tp_clear = NewTypeMethodObject_clear,
 };
 
 // Module definition

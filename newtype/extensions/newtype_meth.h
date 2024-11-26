@@ -5,7 +5,7 @@
 #include "newtype_init.h"
 
 // Struct for the NewTypeMethod object
-typedef struct {
+typedef struct NewTypeMethodObject {
   PyObject_HEAD PyObject *func_get;
   int has_get;
   PyObject *wrapped_cls;

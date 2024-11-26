@@ -106,7 +106,7 @@ def extra_compile_args():
     """
     if os.name == "nt":  # Windows
         extra_compile_args = [
-            "/O2",
+            "/O3",
         ]
     else:  # UNIX-based systems
         extra_compile_args = [
@@ -116,6 +116,7 @@ def extra_compile_args():
             "-Wno-deprecated-declarations",
             "-Wno-parentheses-equality",
             "-Wno-unreachable-code",  # TODO: This should no longer be necessary with Cython>=3.0.3
+            "-Wall",
         ]
     extra_compile_args.append("-UNDEBUG")  # Cython disables asserts by default.
     return extra_compile_args
