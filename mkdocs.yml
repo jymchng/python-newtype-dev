@@ -39,12 +39,15 @@ nav:
     - Custom Initialization: user-guide/custom-initialization.md
     - String Types: user-guide/string-types.md
     - Examples: user-guide/examples.md
+  - Examples:
+    - Basic Examples: examples/basic_examples.md
+    - Advanced Examples: examples/advanced_examples.md
+    - Real World Examples: examples/real_world.md
   - Advanced Topics:
     - Type Inheritance: advanced-topics/type-inheritance.md
     - Method Interception: advanced-topics/method-interception.md
   - API Reference:
     - NewType: api/newtype.md
-    - Extensions: api/extensions.md
   - Development:
     - Contributing: development/contributing.md
     - Building: development/building.md
@@ -65,11 +68,15 @@ markdown_extensions:
 
 plugins:
   - search
+  - tags
   - mkdocstrings:
-      default_handler: python
       handlers:
         python:
-          paths: [src]
           options:
-            show_source: true
-            show_root_heading: true
+            show_bases: true
+            find_stubs_package: true
+            allow_inspection: false # to remove __file__ etc from c extension stubs
+          source:
+            - '**/*.pyi'
+            - '!**/*.so'  # Exclude .so files
+            - '!**/*.pyd'  # Exclude .so files

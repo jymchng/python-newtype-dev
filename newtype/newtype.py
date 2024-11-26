@@ -22,14 +22,25 @@ Technical Details:
     - Handles both normal and descriptor methods
 """
 
-# Don't manually change, let poetry-dynamic-versioning handle it.
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    TypeVar,
+)
 
-__all__: "list[str]" = []
+
+if TYPE_CHECKING:
+    from typing import (
+        Callable,
+        Dict,
+        List,
+    )
+
+__all__: "List[str]" = []
 
 import logging
 import sys
 from logging import getLogger
-from typing import TYPE_CHECKING
 from weakref import WeakKeyDictionary
 
 from .extensions.newtypeinit import (
@@ -51,16 +62,14 @@ logging.basicConfig(
 NEWTYPE_EXCLUDE_FUNC_STR = "_newtype_exclude_func_"
 UNDEFINED = object()
 
-if TYPE_CHECKING:
-    from typing import Type, TypeVar
 
-    T = TypeVar("T")
+T = TypeVar("T", bound=type)
 
 
-__GLOBAL_INTERNAL_TYPE_CACHE__: "WeakKeyDictionary[Type[T], Type[T]]" = WeakKeyDictionary()
+__GLOBAL_INTERNAL_TYPE_CACHE__: "WeakKeyDictionary[type, type]" = WeakKeyDictionary()
 
 
-def newtype_exclude(func):
+def newtype_exclude(func: "Callable"):
     """Decorator to exclude a method from type wrapping.
 
     This decorator marks methods that should not be wrapped by NewTypeMethod,
@@ -99,7 +108,7 @@ def func_is_excluded(func):
     return getattr(func, NEWTYPE_EXCLUDE_FUNC_STR, False)
 
 
-def NewType(type_: "Type[T]", **context) -> "Type[T]":  # noqa: N802, C901
+def NewType(base_type: "type", **context: "Dict[str, Any]") -> "type":  # noqa: N802, C901
     """Create a new type that preserves type information through all operations.
 
     This is the main factory function for creating new types. It wraps an existing
@@ -107,7 +116,7 @@ def NewType(type_: "Type[T]", **context) -> "Type[T]":  # noqa: N802, C901
     their type information.
 
     Args:
-        type_: The base type to wrap
+        base_type: The base type to wrap
         **context: Additional context for type creation (reserved for future use)
 
     Returns
@@ -133,16 +142,20 @@ def NewType(type_: "Type[T]", **context) -> "Type[T]":  # noqa: N802, C901
         - Maintains all original type functionality
         - Provides proper type hints for IDE support
     """
+    # Add a type check for base_type
+    if not isinstance(base_type, type):
+        raise TypeError(f"Expected a type, got {type(base_type).__name__}")
+
     try:
         # we try to see if it is cached, if it is not, no problem either
-        if type_ in __GLOBAL_INTERNAL_TYPE_CACHE__:
-            NEWTYPE_LOGGER.debug(f"`{type_}` found in cache")
-            return __GLOBAL_INTERNAL_TYPE_CACHE__[type_]
+        if base_type in __GLOBAL_INTERNAL_TYPE_CACHE__:
+            NEWTYPE_LOGGER.debug(f"`{base_type}` found in cache")
+            return __GLOBAL_INTERNAL_TYPE_CACHE__[base_type]
     except KeyError:
         NEWTYPE_LOGGER.debug("Exception occurred but ignored during caching of NewType")
         pass
 
-    class BaseNewType(type_):
+    class BaseNewType(base_type):
         """Base class for all NewType instances.
 
         This class provides the core functionality for type preservation and
@@ -153,9 +166,9 @@ def NewType(type_: "Type[T]", **context) -> "Type[T]":  # noqa: N802, C901
         - Attribute access and modification
         """
 
-        if hasattr(type_, "__slots__"):
+        if hasattr(base_type, "__slots__"):
             __slots__ = (
-                *type_.__slots__,
+                *base_type.__slots__,
                 NEWTYPE_INIT_ARGS_STR,
                 NEWTYPE_INIT_KWARGS_STR,
             )
@@ -174,21 +187,21 @@ def NewType(type_: "Type[T]", **context) -> "Type[T]":  # noqa: N802, C901
                 **context: Additional context for subclass initialization
             """
             super().__init_subclass__(**context)
-            NEWTYPE_LOGGER.debug(type_, type_.__dict__)
+            NEWTYPE_LOGGER.debug(base_type, base_type.__dict__)
             NEWTYPE_LOGGER.debug("cls.__dict__: ", cls.__dict__)
             constructor = cls.__init__
             original_cls_dict = {}
             for k, v in cls.__dict__.items():
                 original_cls_dict[k] = v
             NEWTYPE_LOGGER.debug("original_cls_dict: ", original_cls_dict)
-            for k, v in type_.__dict__.items():
+            for k, v in base_type.__dict__.items():
                 if callable(v) and (k not in object.__dict__) and (k not in original_cls_dict):
                     NEWTYPE_LOGGER.debug(
                         "callable(v) and (k not in object.__dict__) and \
                             (k not in original_cls_dict) ; k: ",
                         k,
                     )
-                    setattr(cls, k, NewTypeMethod(v, type_))
+                    setattr(cls, k, NewTypeMethod(v, base_type))
                 elif k not in object.__dict__:
                     if k == "__dict__":
                         continue
@@ -200,22 +213,21 @@ def NewType(type_: "Type[T]", **context) -> "Type[T]":  # noqa: N802, C901
                 if (
                     callable(v)
                     and k != "__init__"
-                    and k in type_.__dict__
+                    and k in base_type.__dict__
                     and not func_is_excluded(v)
                 ):
-                    setattr(cls, k, NewTypeMethod(v, type_))
+                    setattr(cls, k, NewTypeMethod(v, base_type))
                 else:
                     if k == "__dict__":
                         continue
                     setattr(cls, k, v)
                     NEWTYPE_LOGGER.debug("Set")
             NEWTYPE_LOGGER.debug("Setting cls.__init__")
-            cls.__init__ = NewTypeInit(constructor)
+            cls.__init__ = NewTypeInit(constructor)  # type: ignore[method-assign]
             if hasattr(cls, "__slots__"):
                 NEWTYPE_LOGGER.debug("cls.__slots__: ", cls.__slots__)
             NEWTYPE_LOGGER.debug("Setting cls.__init__ completed")
             NEWTYPE_LOGGER.debug("cls.__dict__: ", cls.__dict__, " at end of __init_subclass__")
-            return cls
 
         def __new__(cls, value=None, *_args, **_kwargs):
             """Create a new instance of BaseNewType.
@@ -229,11 +241,11 @@ def NewType(type_: "Type[T]", **context) -> "Type[T]":  # noqa: N802, C901
                 **_kwargs: Additional keyword arguments
             """
             NEWTYPE_LOGGER.debug("cls, cls.__new__: ", cls, cls.__new__)
-            if type_.__new__ == object.__new__:
+            if base_type.__new__ == object.__new__:
                 NEWTYPE_LOGGER.debug(
-                    "type_.__new__ == object.__new__; type_.__new__ = ", type_.__new__
+                    "base_type.__new__ == object.__new__; base_type.__new__ = ", base_type.__new__
                 )
-                inst = type_.__new__(cls)
+                inst = base_type.__new__(cls)
                 NEWTYPE_LOGGER.debug("inst: ", inst)
                 NEWTYPE_LOGGER.debug("type(value): ", repr(type(value)))
                 NEWTYPE_LOGGER.debug("_args: ", _args)
@@ -256,9 +268,9 @@ def NewType(type_: "Type[T]", **context) -> "Type[T]":  # noqa: N802, C901
                             setattr(inst, k, v)
             else:
                 NEWTYPE_LOGGER.debug(
-                    "type_.__new__ != object.__new__; type_.__new__ = ", type_.__new__
+                    "base_type.__new__ != object.__new__; base_type.__new__ = ", base_type.__new__
                 )
-                inst = type_.__new__(cls, value)
+                inst = base_type.__new__(cls, value)
             return inst
 
         def __init__(self, _value=None, *_args, **_kwargs):
@@ -277,9 +289,9 @@ def NewType(type_: "Type[T]", **context) -> "Type[T]":  # noqa: N802, C901
 
     try:
         # we try to store it in a cache, if it fails, no problem either
-        if type_ not in __GLOBAL_INTERNAL_TYPE_CACHE__:
-            NEWTYPE_LOGGER.debug(f"`type_` = {type_} is cached...")
-            __GLOBAL_INTERNAL_TYPE_CACHE__[type_] = BaseNewType
+        if base_type not in __GLOBAL_INTERNAL_TYPE_CACHE__:
+            NEWTYPE_LOGGER.debug(f"`base_type` = {base_type} is cached...")
+            __GLOBAL_INTERNAL_TYPE_CACHE__[base_type] = BaseNewType
     except Exception:
         NEWTYPE_LOGGER.debug("Exception occurred but ignored during caching of NewType")
         pass
