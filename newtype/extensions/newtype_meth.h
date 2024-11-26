@@ -8,6 +8,7 @@
 typedef struct NewTypeMethodObject {
   PyObject_HEAD PyObject *func_get;
   int has_get;
+  PyObject *__isabstractmethod__;
   PyObject *wrapped_cls;
   PyObject *obj;
   PyTypeObject *cls;

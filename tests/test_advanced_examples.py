@@ -43,8 +43,8 @@ class IEmail(ABC):
     def domain(self) -> Optional[str]:
         ...
 
-    @cached_property
     @abstractmethod
+    @cached_property
     def name(self) -> Optional[str]:
         ...
 
@@ -52,15 +52,6 @@ class IEmail(ABC):
     @abstractmethod
     def from_str(s: str) -> "EmailStr":
         ...
-
-
-class DomainResolvedEmailStr(IEmail, NewType(str)):
-
-    @property
-    def domain(self) -> Optional[str]:
-        if "@" in self:
-            return self.split("@")[1]
-        return None
 
 
 class EmailStr(IEmail, NewType(str)):

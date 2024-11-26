@@ -106,7 +106,9 @@ def extra_compile_args():
     """
     if os.name == "nt":  # Windows
         extra_compile_args = [
-            "/O3",
+            "/O2",  # Optimize for speed
+            "/W4",  # Level 4 warnings
+            "/EHsc",  # Enable C++ exceptions
         ]
     else:  # UNIX-based systems
         extra_compile_args = [

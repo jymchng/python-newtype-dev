@@ -2,10 +2,21 @@
 #include "newtype_meth.h"
 
 #include <Python.h>
+#include <descrobject.h>
 #include <stddef.h>
 
 #include "newtype_debug_print.h"
 #include "structmember.h"  // Include for PyMemberDef and related macros
+
+static void set___isabstractmethod__(NewTypeMethodObject* self, PyObject* func)
+{
+  int res = _PyObject_IsAbstract(func);
+  if (res == 1) {
+    self->__isabstractmethod__ = Py_True;
+  } else {
+    self->__isabstractmethod__ = Py_False;
+  }
+}
 
 // Method to initialize the NewTypeMethod object
 static int NewTypeMethod_init(NewTypeMethodObject* self,
@@ -36,6 +47,8 @@ static int NewTypeMethod_init(NewTypeMethodObject* self,
   self->wrapped_cls = wrapped_cls;
   Py_INCREF(self->wrapped_cls);
 
+  set___isabstractmethod__(self, func);
+
   return 0;
 }
 
@@ -51,23 +64,6 @@ static PyObject* NewTypeMethod_get(NewTypeMethodObject* self,
   Py_XINCREF(self->obj);  // Increase reference to new object
   self->cls = (PyTypeObject*)owner;
   Py_XINCREF(self->cls);  // Increase reference to new class
-
-  // if (self->obj == NULL) {
-  //   DEBUG_PRINT("`self->obj` is NULL\n");
-  //   if (self->func_get != NULL) {
-  //     DEBUG_PRINT("`self->func_get`: %s\n",
-  //     PyUnicode_AsUTF8(PyObject_Repr(self->func_get))); if (self->has_get) {
-  //       return PyObject_CallFunctionObjArgs(self->func_get, Py_None,
-  //                                           self->wrapped_cls, NULL);
-  //     } else {
-  //       PyObject *func;
-  //       func = self->func_get;
-  //       Py_INCREF(func);
-  //       return func;
-  //     }
-  //   }
-  // }
-
   Py_INCREF(self);
   return (PyObject*)self;
 }
@@ -241,7 +237,7 @@ static int NewTypeMethodObject_traverse(PyObject* self,
                                         visitproc visit,
                                         void* arg)
 {
-  NewTypeMethodObject *pp = (NewTypeMethodObject*)self;
+  NewTypeMethodObject* pp = (NewTypeMethodObject*)self;
   Py_VISIT(pp->cls);
   Py_VISIT(pp->obj);
   Py_VISIT(pp->wrapped_cls);
@@ -257,9 +253,15 @@ static int NewTypeMethodObject_clear(PyObject* self)
   return 0;
 }
 
+static PyMemberDef newtypemethodobject_members[] = {
+    {"__isabstractmethod__", T_OBJECT, offsetof(NewTypeMethodObject, __isabstractmethod__), READONLY},
+    {0}
+};
+
 // Type definition
 PyTypeObject NewTypeMethodType = {
-    PyVarObject_HEAD_INIT(&PyType_Type, 0).tp_name = "newtypemethod.NewTypeMethod",
+    PyVarObject_HEAD_INIT(&PyType_Type, 0).tp_name =
+        "newtypemethod.NewTypeMethod",
     .tp_doc =
         "A descriptor class that wraps around regular methods of a class "
         "to allow instantiation of the subtype if the method returns an "
@@ -272,6 +274,7 @@ PyTypeObject NewTypeMethodType = {
     .tp_dealloc = (destructor)NewTypeMethod_dealloc,
     .tp_call = (ternaryfunc)NewTypeMethod_call,
     .tp_getattro = PyObject_GenericGetAttr,
+    .tp_members = newtypemethodobject_members,
     .tp_methods = NewTypeMethod_methods,
     .tp_descr_get = (descrgetfunc)NewTypeMethod_get,
     .tp_traverse = NewTypeMethodObject_traverse,
