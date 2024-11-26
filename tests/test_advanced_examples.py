@@ -1,6 +1,8 @@
 import logging
 import time
 from typing import Optional
+from abc import ABC, abstractmethod
+from functools import cached_property
 
 import pytest
 
@@ -34,39 +36,70 @@ def test_timed_dict():
     assert list(d.keys()) == ["key"]
 
 
+class IEmail(ABC):
+
+    @property
+    @abstractmethod
+    def domain(self) -> Optional[str]:
+        ...
+
+    @cached_property
+    @abstractmethod
+    def name(self) -> Optional[str]:
+        ...
+
+    @staticmethod
+    @abstractmethod
+    def from_str(s: str) -> "EmailStr":
+        ...
+
+
+class DomainResolvedEmailStr(IEmail, NewType(str)):
+
+    @property
+    def domain(self) -> Optional[str]:
+        if "@" in self:
+            return self.split("@")[1]
+        return None
+
+
+class EmailStr(IEmail, NewType(str)):
+    def __init__(self, value: str, strict: bool = True):
+        if strict and "@" not in value:
+            raise ValueError("Invalid email format")
+        super().__init__(value)
+
+    @property
+    def domain(self) -> Optional[str]:
+        if "@" in self:
+            return self.split("@")[1]
+        return None
+
+    @cached_property
+    def name(self) -> Optional[str]:
+        if "@" in self:
+            return self.split("@")[0]
+        return None
+
+    @staticmethod
+    def from_str(s: str) -> "EmailStr":
+        return EmailStr(s)
+
+    def get_name(self) -> Optional[str]:
+        return self.name
+
+
+class Gmail(EmailStr):
+    def __init__(self, value: str, strict: bool = True):
+        if strict and "@gmail.com" not in value:
+            raise ValueError("Invalid email format")
+        super().__init__(value, strict)
+
+
 def test_email_str():
-    from functools import cached_property
-
-    class EmailStr(NewType(str)):
-        def __init__(self, value: str, strict: bool = True):
-            if strict and "@" not in value:
-                raise ValueError("Invalid email format")
-            super().__init__(value)
-
-        @property
-        def domain(self) -> Optional[str]:
-            if "@" in self:
-                return self.split("@")[1]
-            return None
-
-        @cached_property
-        def name(self) -> Optional[str]:
-            if "@" in self:
-                return self.split("@")[0]
-            return None
-
-        @staticmethod
-        def from_str(s: str) -> "EmailStr":
-            return EmailStr(s)
-
-    class Gmail(EmailStr):
-        def __init__(self, value: str, strict: bool = True):
-            if strict and "@gmail.com" not in value:
-                raise ValueError("Invalid email format")
-            super().__init__(value, strict)
-
     gmail = Gmail("hello@gmail.com")
     assert gmail.domain == "gmail.com"
+    assert gmail.get_name.__name__ == "get_name"
     assert gmail.name == "hello"
     assert isinstance(gmail.domain, str)
     with pytest.raises(AssertionError):
