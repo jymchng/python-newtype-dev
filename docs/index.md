@@ -102,3 +102,5 @@ See the [Installation Guide](getting-started/installation.md) for detailed insta
 ## Contributing
 
 We welcome contributions! Please see our [Contributing Guide](development/contributing.md) for details on how to get involved.
+
+## References

@@ -76,6 +76,7 @@ pytest-cov = "*"
 pytest-mock = "*"
 pytest-asyncio = "*"
 pandas = "*"
+pydantic = "*"
 
 [tool.coverage.run]
 branch = true

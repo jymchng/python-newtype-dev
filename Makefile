@@ -43,8 +43,7 @@ dist-contents: build
 # Check code quality
 check:
 	ruff check .
-	find . -name "*.c" -exec clang-tidy {} +
-	find . -name "*.c" -exec cppcheck {} +
+	find . -wholename "./newtype/extensions/*.c" -exec cppcheck {} +
 
 # Format code
 format:

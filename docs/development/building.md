@@ -21,13 +21,36 @@ cd python-newtype
 
 2. Install dependencies using Poetry:
 ```bash
-poetry install
+poetry install --no-root
 ```
 
 3. Activate the virtual environment:
 ```bash
 poetry shell
 ```
+
+Alternatively, you can use `venv` to create and activate a virtual environment.
+Create a new virtual environment using `venv`:
+
+For Linux:
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+For Windows:
+```bash
+python -m venv venv
+.\venv\Scripts\activate
+```
+
+Then, get poetry to use it:
+```bash
+poetry config virtualenvs.in-project true
+```
+This will ensure that Poetry uses the current virtual environment located in the project directory.
+You can also set the virtual environment path explicitly if needed.
+For example:
+`poetry config virtualenvs.path /path/to/your/venvs`
 
 ## Project Structure
 
@@ -61,7 +84,7 @@ This will create both wheel and source distributions in the `dist/` directory.
 
 2. Install the package locally for testing:
 ```bash
-pip install dist/newtype-*.whl
+pip install dist/python_newtype-*.whl
 ```
 
 ### Using Build
@@ -69,14 +92,18 @@ pip install dist/newtype-*.whl
 Alternatively, you can use Python's build module:
 
 ```bash
-python -m build
+poetry build
 ```
 
 ## Running Tests
 
 1. Run all tests:
 ```bash
-pytest
+python -m pytest tests -s -vv
+```
+Or:
+```bash
+make test
 ```
 
 2. Run tests with coverage:
@@ -85,8 +112,9 @@ pytest --cov=newtype
 ```
 
 3. Run specific test files:
+For example,
 ```bash
-pytest tests/test_basic_examples.py
+make test-file FILE=tests/test_advanced_examples.py
 ```
 
 ## Code Quality
@@ -101,18 +129,18 @@ mypy newtype
 
 ### Code Style
 
-We follow PEP 8 guidelines. Use flake8 for style checking:
+Use `ruff` and `cppcheck` for style checking:
 
 ```bash
-flake8 newtype tests
+make check
 ```
 
 ### Formatting
 
-We use black for code formatting:
+We use `ruff` and `clang-format` for code formatting:
 
 ```bash
-black newtype tests
+make format
 ```
 
 ## Documentation
@@ -121,9 +149,9 @@ black newtype tests
 
 We use MkDocs for documentation:
 
-1. Install MkDocs:
+1. Install Docs MkDocs:
 ```bash
-pip install mkdocs mkdocs-material
+poetry install --with docs
 ```
 
 2. Build the documentation:

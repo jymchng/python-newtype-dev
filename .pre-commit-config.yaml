@@ -91,9 +91,13 @@ repos:
 
   - repo: local
     hooks:
-      - id: format
+      - id: make-format
         name: Run make format
         entry: make format
+        language: system
+      - id: make-check
+        name: Run make check
+        entry: make check
         language: system
       - id: make-dev
         name: Run make dev
