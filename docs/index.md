@@ -104,3 +104,7 @@ See the [Installation Guide](getting-started/installation.md) for detailed insta
 We welcome contributions! Please see our [Contributing Guide](development/contributing.md) for details on how to get involved.
 
 ## References
+
+1. [Python Documentation on Subclassing](https://docs.python.org/3/extending/newtypes_tutorial.html#subclassing-other-types)
+2. [MIT OpenCourseware 6.170 Lecture 14: Subtypes and Subclasses](https://ocw.mit.edu/courses/6-170-laboratory-in-software-engineering-fall-2005/9ed2c853eea2311adeadfcc0de284114_lec14.pdf)
+3. [Nutype; Rust Crate](https://crates.io/crates/nutype)
