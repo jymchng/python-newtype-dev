@@ -172,27 +172,35 @@ mkdocs serve
 - `/docs/examples/`: Code examples
 - `/docs/development/`: Development guides
 
+
 ## Release Process
 
-1. Update version in `pyproject.toml`:
-```toml
-[tool.poetry]
-name = "newtype"
-version = "1.0.0"
+### Poetry Dynamic Versioning
+To use dynamic versioning, you need to install the poetry-dynamic-versioning plugin. You can do this by running:
+
+```bash
+poetry self add poetry-dynamic-versioning
 ```
 
-2. Create and push a tag:
+After installing the plugin, you need to configure it. You can do this by adding a [tool.dynamic-versioning] section to your pyproject.toml file. Here’s an example configuration:
+
+```bash
+[tool.dynamic-versioning]
+version = { source = "git" }
+```
+
+1. Create and push a tag:
 ```bash
 git tag v1.0.0
 git push origin v1.0.0
 ```
 
-3. Build distribution packages:
+2. Build distribution packages:
 ```bash
 poetry build
 ```
 
-4. Upload to PyPI:
+3. Upload to PyPI:
 ```bash
 poetry publish
 ```

@@ -41,7 +41,7 @@ python = ">=3.8,<4.0"
 typing-extensions = "*"
 
 [tool.poetry-dynamic-versioning]
-version-file = "newtype/__init__.py"
+version = { source = "git" }
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "*"
