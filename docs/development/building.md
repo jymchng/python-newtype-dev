@@ -182,12 +182,7 @@ To use dynamic versioning, you need to install the poetry-dynamic-versioning plu
 poetry self add poetry-dynamic-versioning
 ```
 
-After installing the plugin, you need to configure it. You can do this by adding a [tool.dynamic-versioning] section to your pyproject.toml file. Here’s an example configuration:
-
-```bash
-[tool.dynamic-versioning]
-version = { source = "git" }
-```
+### To Release a New Version
 
 1. Create and push a tag:
 ```bash
