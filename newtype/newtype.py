@@ -297,6 +297,4 @@ def NewType(base_type: "type", **context: "Dict[str, Any]") -> "type":  # noqa: 
         NEWTYPE_LOGGER.debug("Exception occurred but ignored during caching of NewType")
         pass
 
-    if hasattr(BaseNewType, "__slots__"):
-        NEWTYPE_LOGGER.debug("BaseNewType.__slots__: ", BaseNewType.__slots__)
     return BaseNewType
