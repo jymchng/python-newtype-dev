@@ -189,6 +189,7 @@ def NewType(base_type: "type", **context: "Dict[str, Any]") -> "type":  # noqa: 
             super().__init_subclass__(**context)
             NEWTYPE_LOGGER.debug(base_type, base_type.__dict__)
             NEWTYPE_LOGGER.debug("cls.__dict__: ", cls.__dict__)
+
             constructor = cls.__init__
             original_cls_dict = {}
             for k, v in cls.__dict__.items():
@@ -296,4 +297,6 @@ def NewType(base_type: "type", **context: "Dict[str, Any]") -> "type":  # noqa: 
         NEWTYPE_LOGGER.debug("Exception occurred but ignored during caching of NewType")
         pass
 
+    if hasattr(BaseNewType, "__slots__"):
+        NEWTYPE_LOGGER.debug("BaseNewType.__slots__: ", BaseNewType.__slots__)
     return BaseNewType

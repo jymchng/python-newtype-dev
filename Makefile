@@ -9,9 +9,12 @@ SRC := src
 EXTENSIONS := extensions
 
 # Docker
-DOCKER_IMAGE := python-newtype-demo
+DOCKER_DEMO_IMAGE := python-newtype-demo
+DOCKERFILE_DEMO_PATH := tests/Dockerfile
+
+DOCKER_TESTS_MULVER_IMAGE := python-newtype-test-mul-vers
+DOCKERFILE_TESTS_MULVER_PATH := tests/Dockerfile-test-mul-vers
 DOCKER_TAG := latest
-DOCKERFILE_PATH := tests/Dockerfile
 
 # Files and directories
 SO_FILES := newtypemethod.cpython-*-linux-gnu.so newtypeinit.cpython-*-linux-gnu.so $(PROJECT_DIR)/$(EXTENSIONS)/newtypemethod.cpython-*-linux-gnu.so $(PROJECT_DIR)/$(EXTENSIONS)/newtypeinit.cpython-*-linux-gnu.so
@@ -24,17 +27,29 @@ PYTEST_FLAGS := -s -vv
 all: clean build test format check venv-poetry clean-deps
 
 # Docker targets
-docker-build: build
-	docker build -t $(DOCKER_IMAGE):$(DOCKER_TAG) -f $(DOCKERFILE_PATH) .
+docker-demo-build: build
+	docker build -t $(DOCKER_DEMO_IMAGE):$(DOCKER_TAG) -f $(DOCKERFILE_DEMO_PATH) .
 
-docker-run:
-	docker run --rm $(DOCKER_IMAGE):$(DOCKER_TAG)
+docker-demo-run:
+	docker run --rm $(DOCKER_DEMO_IMAGE):$(DOCKER_TAG)
 
-docker-clean:
-	docker rmi $(DOCKER_IMAGE):$(DOCKER_TAG)
+docker-demo-clean:
+	docker rmi $(DOCKER_DEMO_IMAGE):$(DOCKER_TAG)
 
 # Run complete Docker demo cycle: build, run, clean
-docker-demo: docker-build docker-run docker-clean
+docker-demo: docker-demo-build docker-demo-run docker-demo-clean
+
+docker-test-mulvers-build: build
+	docker build -t $(DOCKER_TESTS_MULVER_IMAGE):$(DOCKER_TAG) -f $(DOCKERFILE_TESTS_MULVER_PATH) .
+
+docker-test-mulvers-run:
+	docker run --rm $(DOCKER_TESTS_MULVER_IMAGE):$(DOCKER_TAG)
+
+docker-test-mulvers-clean:
+	docker rmi $(DOCKER_TESTS_MULVER_IMAGE):$(DOCKER_TAG)
+
+# Run complete Docker demo cycle: build, run, clean
+docker-test-mulvers: docker-test-mulvers-build docker-test-mulvers-run docker-test-mulvers-clean
 
 # Distribution targets
 dist-contents: build

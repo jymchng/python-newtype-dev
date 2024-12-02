@@ -4,7 +4,7 @@ build-backend = "poetry_dynamic_versioning.backend"
 
 [tool.poetry]
 name = "python-newtype"
-version = "0.1.0"
+version = "0.1.0.post3.dev0+ffe1f8b"
 homepage = "https://github.com/jymchng/python-newtype-dev"
 repository = "https://github.com/jymchng/python-newtype-dev"
 license = "Apache-2.0"
@@ -41,7 +41,7 @@ python = ">=3.8,<4.0"
 typing-extensions = "*"
 
 [tool.poetry-dynamic-versioning]
-enable = true
+enable = false
 vcs = "git"
 
 [tool.poetry.group.docs.dependencies]

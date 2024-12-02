@@ -1,6 +1,6 @@
 import pytest
-
-from newtype import NewType
+from newtype import NewType, newtype_exclude
+from typing import Union, Optional
 
 
 def test_enhanced_str():
@@ -95,3 +95,126 @@ def test_inheritance_chain():
     assert isinstance(d, dict)
     assert isinstance(d, BaseDict)
     assert isinstance(d, ExtendedDict)
+
+
+def test_safe_str():
+    class SafeStr(NewType(str)):
+        def __init__(self, value: str):
+            if "<script>" in value.lower():
+                raise ValueError("XSS attempt detected")
+            super().__init__()
+
+        @newtype_exclude
+        def unsafe_operation(self):
+            return str(self)
+
+        def safe_operation(self):
+            return self.lower()
+
+    # Test initialization
+    text = SafeStr("Hello")
+    assert isinstance(text, SafeStr)
+    assert isinstance(text, str)
+
+    # Test XSS detection
+    with pytest.raises(ValueError, match="XSS attempt detected"):
+        SafeStr("<script>alert('xss')</script>")
+
+    # Test method type preservation
+    assert isinstance(text.safe_operation(), SafeStr)
+    assert not isinstance(text.unsafe_operation(), SafeStr)
+    assert isinstance(text.unsafe_operation(), str)
+
+
+def test_memory_efficient_str():
+    class MemoryEfficientStr(NewType(str)):
+        __slots__ = ['_cached_value']
+
+        def __init__(self, value: str):
+            super().__init__(value)
+            self._cached_value = None
+
+        def compute_expensive(self):
+            if self._cached_value is None:
+                self._cached_value = self.upper() + self.lower()
+            return self._cached_value
+
+    # Test initialization and basic string operations
+    text = MemoryEfficientStr("Hello")
+    assert isinstance(text, MemoryEfficientStr)
+    assert isinstance(text, str)
+    assert text == "Hello"
+
+    # Test caching behavior
+    expected = "HELLOhello"
+    result1 = text.compute_expensive()
+    assert result1 == expected
+    assert text._cached_value == expected
+
+    # Test that cached value is reused
+    result2 = text.compute_expensive()
+    assert result2 == expected
+    assert result1 is result2  # Should be the same object due to caching
+
+    assert hasattr(text, '__slots__')
+
+
+def test_supertype_subtype_both_have___slots__():
+    class B:
+        __slots__ = ('hi',)
+
+    class A(NewType(B)):
+        __slots__ = ('bye')
+
+    a = A()
+    a.hi = 1
+    a.bye = 2
+    with pytest.raises(AttributeError):
+        a.hello = 3
+        assert a.hello == 3
+
+    assert a.hi == 1
+    assert a.bye == 2
+
+    # Test slots (no need to test this because inherited
+    # class with `__slots__` but super class as no `__slots__` will get a `__dict__`)
+    # with pytest.raises(AttributeError):
+    # text.new_attribute = "test"  # Should fail due to __slots__
+
+
+def test_integer_str():
+    class IntegerStr(NewType(str)):
+        def __init__(self, value: Union[str, int], base: int = 10):
+            if isinstance(value, int):
+                value = str(value)
+            try:
+                int(value, base)
+            except ValueError:
+                raise ValueError(f"Value must be a valid integer in base {base}")
+            super().__init__()
+
+        def to_int(self, base: Optional[int] = None) -> int:
+            return int(self, base or 10)
+
+    # Test initialization with string
+    num1 = IntegerStr("42")
+    assert isinstance(num1, IntegerStr)
+    assert isinstance(num1, str)
+    assert num1 == "42"
+
+    # Test initialization with integer
+    num2 = IntegerStr(42)
+    assert num2 == "42"
+    assert num2.to_int() == 42
+
+    # Test hexadecimal
+    hex_num = IntegerStr("2A", base=16)
+    assert hex_num == "2A"
+    assert hex_num.to_int(16) == 42
+
+    # Test invalid input
+    with pytest.raises(ValueError):
+        IntegerStr("not a number")
+
+    with pytest.raises(ValueError):
+        IntegerStr("GG", base=16)  # Invalid hex number

@@ -91,6 +91,74 @@ except ValueError:
 - Behavioral subtyping with invariant maintenance
 - Liskov Substitution Principle compliance
 
+## More Examples
+
+### Method Exclusion
+```python
+from newtype import NewType, newtype_exclude
+
+class SafeStr(NewType(str)):
+    def __init__(self, value: str):
+        if "<script>" in value.lower():
+            raise ValueError("XSS attempt detected")
+        super().__init__()
+
+    # This method will return a regular str, not a SafeStr
+    @newtype_exclude
+    def unsafe_operation(self):
+        return str(self)
+
+    # This method will return a SafeStr
+    def safe_operation(self):
+        return self.lower()
+
+# Usage
+text = SafeStr("Hello")
+assert isinstance(text.unsafe_operation(), str)      # Regular str
+assert isinstance(text.safe_operation(), SafeStr)    # SafeStr
+```
+
+### Memory Optimization
+```python
+class MemoryEfficientStr(NewType(str)):
+    __slots__ = ['_cached_value']
+
+    def __init__(self, value: str):
+        super().__init__()
+        self._cached_value = None
+
+    def compute_expensive(self):
+        if self._cached_value is None:
+            self._cached_value = self.upper() + self.lower()
+        return self._cached_value
+
+text = MemoryEfficientStr("Hello")
+print(text.compute_expensive())  # "HELLOhello"
+```
+
+### Advanced Validation
+```python
+from typing import Union, Optional
+
+class IntegerStr(NewType(str)):
+    def __init__(self, value: Union[str, int], base: int = 10):
+        if isinstance(value, int):
+            value = str(value)
+        try:
+            int(value, base)
+        except ValueError:
+            raise ValueError(f"Value must be a valid integer in base {base}")
+        super().__init__()
+
+    def to_int(self, base: Optional[int] = None) -> int:
+        return int(self, base or 10)
+
+# Handle different number bases
+num = IntegerStr("42")           # Decimal
+hex_num = IntegerStr("2A", 16)   # Hexadecimal
+print(hex_num.to_int(16))        # 42
+```
+
 ## Getting Started
 
 Check out our [Quick Start Guide](getting-started/quickstart.md) to begin using python-newtype in your projects.
