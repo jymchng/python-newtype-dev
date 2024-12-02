@@ -158,24 +158,6 @@ def test_memory_efficient_str():
 
     assert hasattr(text, '__slots__')
 
-
-def test_supertype_subtype_both_have___slots__():
-    class B:
-        __slots__ = ('hi',)
-
-    class A(NewType(B)):
-        __slots__ = ('bye')
-
-    a = A()
-    a.hi = 1
-    a.bye = 2
-    with pytest.raises(AttributeError):
-        a.hello = 3
-        assert a.hello == 3
-
-    assert a.hi == 1
-    assert a.bye == 2
-
     # Test slots (no need to test this because inherited
     # class with `__slots__` but super class as no `__slots__` will get a `__dict__`)
     # with pytest.raises(AttributeError):

@@ -52,3 +52,22 @@ def test_slots_inheritance():
     # Check that base instance cannot access derived slots
     with pytest.raises(AttributeError):
         _ = base.age  # Should raise an error since 'age' is not a defined slot in Base
+
+
+@limit_leaks(LEAK_LIMIT)
+def test_supertype_subtype_both_have___slots__():
+    class B:
+        __slots__ = ('hi',)
+
+    class A(NewType(B)):
+        __slots__ = ('bye')
+
+    a = A()
+    a.hi = 1
+    a.bye = 2
+    with pytest.raises(AttributeError):
+        a.hello = 3
+        assert a.hello == 3
+
+    assert a.hi == 1
+    assert a.bye == 2
