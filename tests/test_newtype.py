@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING
 
 import pandas as pd
 import pytest
+import warnings
 from conftest import LEAK_LIMIT, limit_leaks
 
 from newtype import NewType
@@ -9,6 +10,14 @@ from newtype import NewType
 
 if TYPE_CHECKING:
     pass
+
+
+# Suppress pandas warnings for this test module
+@pytest.fixture(autouse=True)
+def ignore_pandas_warnings():
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=UserWarning, module="pandas")
+        yield
 
 
 class PositiveInt(NewType(int)):

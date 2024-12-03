@@ -101,13 +101,16 @@ class DynamicDict(NewType(dict)):
 
 
 class CachedDict(NewType(dict)):
-    @pytest.fixture(autouse=True)
-    def _clear_cache(self):
-        self.get_or_default.cache_clear()
+    _cache = {}
 
-    @pytest.mark.lru_cache(maxsize=100)
     def get_or_default(self, key, default=None):
-        return self.get(key, default)
+        cache_key = (key, default)
+        if cache_key not in self._cache:
+            self._cache[cache_key] = self.get(key, default)
+        return self._cache[cache_key]
+
+    def clear_cache(self):
+        self._cache.clear()
 
 
 class LazyDict(NewType(dict)):
@@ -242,6 +245,11 @@ def test_cached_dict():
     result2 = cached.get_or_default("key", "default")
 
     assert result1 == result2 == "value"
+
+    # Clear cache and verify it works
+    cached.clear_cache()
+    result3 = cached.get_or_default("key", "default")
+    assert result3 == "value"
 
 
 def test_lazy_dict():

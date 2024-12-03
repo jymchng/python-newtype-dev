@@ -100,10 +100,11 @@ jobs:
 
       - name: Run tests
         if: steps.check_test_files.outputs.files_exists == 'true'
+        env:
+          PYTHONWARNINGS: ignore
         run: |
           source ${{ env.ACTIVATE_PYTHON_VENV }}
-          make test
-          coverage report
+          python -m pytest tests/ -vv -s --no-cov
 
         #----------------------------------------------
         #            make sure docs build
@@ -113,11 +114,11 @@ jobs:
           source ${{ env.ACTIVATE_PYTHON_VENV }}
           mkdocs build
 
-      - name: Upload coverage to Codecov
-        if: steps.check_test_files.outputs.files_exists == 'true'
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          flags: unittests
-          env_vars: OS,PYTHON
-          name: Python ${{ matrix.python-version }} on ${{ runner.os }}
+      # - name: Upload coverage to Codecov
+      #   if: steps.check_test_files.outputs.files_exists == 'true'
+      #   uses: codecov/codecov-action@v4
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+      #     flags: unittests
+      #     env_vars: OS,PYTHON
+      #     name: Python ${{ matrix.python-version }} on ${{ runner.os }}

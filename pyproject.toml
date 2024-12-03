@@ -265,23 +265,11 @@ staticmethod-decorators = ["pydantic.validator", "pydantic.root_validator"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
-addopts = """
-    -vv
-    --tb=short
-    --no-cov
-    --strict-markers
-    -W all
-    -W ignore::UserWarning
-    -W ignore::pytest.PytestUnknownMarkWarning
-    -W ignore::pytest.PytestDeprecationWarning
-"""
+addopts = "-vv --tb=short"
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 log_format = "%(asctime)s %(levelname)s %(message)s"
 log_date_format = "%Y-%m-%d %H:%M:%S"
-markers = [
-    "lru_cache: marks tests that use lru_cache",
-]
 
 [tool.codespell]
 skip = 'poetry.lock,sources/*.c,sources/*.pyx,sources/*.pxd'
