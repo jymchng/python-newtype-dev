@@ -1,12 +1,12 @@
 {
-    "files.associations": {
-        "*.py": "python",
-        "*.ts": "typescript",
-        "newtype_init.h": "c",
-        "stddef.h": "c",
-        "newtype_meth.h": "c",
-        "python.h": "c",
-        "structmember.h": "c",
-        "newtype_debug_print.h": "c"
-    }
+  "files.associations": {
+    "*.py": "python",
+    "*.ts": "typescript",
+    "newtype_init.h": "c",
+    "stddef.h": "c",
+    "newtype_meth.h": "c",
+    "python.h": "c",
+    "structmember.h": "c",
+    "newtype_debug_print.h": "c"
+  }
 }

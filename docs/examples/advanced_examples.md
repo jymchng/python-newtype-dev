@@ -9,16 +9,17 @@ class TimedDict(NewType(dict)):
     def __init__(self):
         super().__init__()
         self.operation_times = {}
-    
+
     def __getitem__(self, key):
         start = time.time()
         result = super().__getitem__(key)
         elapsed = time.time() - start
         self.operation_times[key] = elapsed
         return result
-    
+
     def get_stats(self):
         return self.operation_times
+
 
 # Usage
 d = TimedDict()
@@ -37,7 +38,7 @@ class EmailStr(NewType(str)):
         if strict and '@' not in value:
             raise ValueError("Invalid email format")
         super().__init__()
-    
+
     @property
     def domain(self) -> Optional[str]:
         if '@' in self:
@@ -58,11 +59,11 @@ class LoggedList(NewType(list)):
     def __init__(self, logger=None):
         super().__init__()
         self.logger = logger or logging.getLogger(__name__)
-    
+
     def __enter__(self):
         self.logger.info("Starting list operations")
         return self
-    
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.logger.info("Finished list operations")
         if exc_type:

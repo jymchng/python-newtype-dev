@@ -12,15 +12,15 @@ class ConfigDict(NewType(dict)):
         self.config_file = Path(config_file)
         if self.config_file.exists():
             self.load()
-    
+
     def load(self):
         with open(self.config_file) as f:
             self.update(json.load(f))
-    
+
     def save(self):
         with open(self.config_file, 'w') as f:
             json.dump(self, f, indent=2)
-    
+
     def __setitem__(self, key, value):
         super().__setitem__(key, value)
         self.save()  # Auto-save on changes
@@ -40,20 +40,20 @@ class ValidatedDict(NewType(dict)):
     def __init__(self, schema: Dict[str, Any]):
         super().__init__()
         self.schema = schema
-    
+
     def __setitem__(self, key: str, value: Any):
         if key not in self.schema:
             raise KeyError(f"Key '{key}' not in schema")
-        
+
         expected_type = self.schema[key].get('type')
         if not isinstance(value, expected_type):
             raise TypeError(f"Value for '{key}' must be {expected_type}")
-        
+
         pattern = self.schema[key].get('pattern')
         if pattern and isinstance(value, str):
             if not re.match(pattern, value):
                 raise ValueError(f"Value for '{key}' doesn't match pattern {pattern}")
-        
+
         super().__setitem__(key, value)
 
 # Usage
@@ -78,7 +78,7 @@ class AuditedDict(NewType(dict)):
     def __init__(self, audit_file: str = "audit.log"):
         super().__init__()
         self.audit_file = audit_file
-    
+
     def _log_operation(self, operation: str, key: str, value: Any = None):
         log_entry = {
             'timestamp': datetime.now().isoformat(),
@@ -88,11 +88,11 @@ class AuditedDict(NewType(dict)):
         }
         with open(self.audit_file, 'a') as f:
             f.write(json.dumps(log_entry) + '\n')
-    
+
     def __setitem__(self, key, value):
         self._log_operation('set', key, value)
         super().__setitem__(key, value)
-    
+
     def __delitem__(self, key):
         self._log_operation('delete', key)
         super().__delitem__(key)
