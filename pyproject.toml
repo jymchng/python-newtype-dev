@@ -65,6 +65,7 @@ optional = true
 
 [tool.poetry.group.profiling.dependencies]
 memray = { version = "^1.11.0", markers = "sys_platform != 'win32'" }
+pytest-memray = { version = "*", markers = "sys_platform != 'win32'" }
 
 [tool.poetry.group.debug]
 optional = true
@@ -74,7 +75,6 @@ line_profiler = "*"
 
 [tool.poetry.group.tests.dependencies]
 coverage = { extras = ["toml"], version = "*" }
-pytest-memray = "*"
 pytest = "*"
 pytest-cov = "*"
 pytest-mock = "*"

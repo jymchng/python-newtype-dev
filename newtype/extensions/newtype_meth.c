@@ -262,8 +262,7 @@ static PyMemberDef newtypemethodobject_members[] = {
 
 // Type definition
 PyTypeObject NewTypeMethodType = {
-    PyVarObject_HEAD_INIT(&PyType_Type, 0).tp_name =
-        "newtypemethod.NewTypeMethod",
+    PyVarObject_HEAD_INIT(NULL, 0).tp_name = "newtypemethod.NewTypeMethod",
     .tp_doc =
         "A descriptor class that wraps around regular methods of a class "
         "to allow instantiation of the subtype if the method returns an "
@@ -292,16 +291,16 @@ static struct PyModuleDef newtypemethodmodule = {
         "that wraps around regular methods of a class to allow instantiation "
         "of the subtype if the method returns an instance of the supertype.",
     .m_size = -1,
+    .m_methods = NewTypeMethod_methods,
 };
 
 // Module initialization function
 PyMODINIT_FUNC PyInit_newtypemethod(void)
 {
-  PyObject* m;
   if (PyType_Ready(&NewTypeMethodType) < 0)
     return NULL;
 
-  m = PyModule_Create(&newtypemethodmodule);
+  PyObject* m = PyModule_Create(&newtypemethodmodule);
   if (m == NULL)
     return NULL;
 

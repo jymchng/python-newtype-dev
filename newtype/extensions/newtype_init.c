@@ -206,7 +206,7 @@ static void NewTypeInit_dealloc(NewTypeInitObject* self)
 static PyMethodDef NewTypeInit_methods[] = {{NULL, NULL, 0, NULL}};
 
 static PyTypeObject NewTypeInitType = {
-    PyVarObject_HEAD_INIT(NULL, 0).tp_name = "NewTypeInit.NewTypeInit",
+    PyVarObject_HEAD_INIT(NULL, 0).tp_name = "newtypeinit.NewTypeInit",
     .tp_doc = "Descriptor class that wraps methods for instantiating subtypes.",
     .tp_basicsize = sizeof(NewTypeInitObject),
     .tp_itemsize = 0,
@@ -223,18 +223,18 @@ static PyTypeObject NewTypeInitType = {
 
 static struct PyModuleDef NewTypeInitmodule = {
     PyModuleDef_HEAD_INIT,
-    .m_name = "NewTypeInit",
+    .m_name = "newtypeinit",
     .m_doc = "A module containing `NewTypeInit` descriptor class.",
     .m_size = -1,
+    .m_methods = NewTypeInit_methods,
 };
 
 PyMODINIT_FUNC PyInit_newtypeinit(void)
 {
-  PyObject* m;
   if (PyType_Ready(&NewTypeInitType) < 0)
     return NULL;
 
-  m = PyModule_Create(&NewTypeInitmodule);
+  PyObject* m = PyModule_Create(&NewTypeInitmodule);
   if (m == NULL)
     return NULL;
 
@@ -244,7 +244,14 @@ PyMODINIT_FUNC PyInit_newtypeinit(void)
     Py_DECREF(m);
     return NULL;
   }
-  PyModule_AddObject(m, "NEWTYPE_INIT_KWARGS_STR", PY_NEWTYPE_INIT_KWARGS_STR);
+  if (PyModule_AddObject(
+          m, "NEWTYPE_INIT_KWARGS_STR", PY_NEWTYPE_INIT_KWARGS_STR)
+      < 0)
+  {
+    Py_DECREF(PY_NEWTYPE_INIT_KWARGS_STR);
+    Py_DECREF(m);
+    return NULL;
+  }
 
   PyObject* PY_NEWTYPE_INIT_ARGS_STR =
       PyUnicode_FromString(NEWTYPE_INIT_ARGS_STR);
@@ -252,7 +259,13 @@ PyMODINIT_FUNC PyInit_newtypeinit(void)
     Py_DECREF(m);
     return NULL;
   }
-  PyModule_AddObject(m, "NEWTYPE_INIT_ARGS_STR", PY_NEWTYPE_INIT_ARGS_STR);
+  if (PyModule_AddObject(m, "NEWTYPE_INIT_ARGS_STR", PY_NEWTYPE_INIT_ARGS_STR)
+      < 0)
+  {
+    Py_DECREF(PY_NEWTYPE_INIT_ARGS_STR);
+    Py_DECREF(m);
+    return NULL;
+  }
 
   Py_INCREF(&NewTypeInitType);
   if (PyModule_AddObject(m, "NewTypeInit", (PyObject*)&NewTypeInitType) < 0) {
