@@ -37,31 +37,34 @@ generate-setup-file = false
 generate-ref-docs = "scripts.generate_ref_docs:main"
 
 [tool.poetry.dependencies]
-python = ">=3.8,<4.0"
+python = ">=3.8"
 typing-extensions = "*"
-
-[tool.poetry-dynamic-versioning]
-enable = false
-vcs = "git"
-
-[tool.poetry.group.docs.dependencies]
-mkdocs = "*"
-mkdocs-material = "*"
-mkdocstrings = { extras = ["python"], version = "*" }
-toml = "*"
-# https://github.com/python-poetry/poetry/issues/9293
-docutils = "!=0.21.post1"
 
 [tool.poetry.group.dev.dependencies]
 pre_commit = "*"
-ruff = "*"
-mypy = "*"
-
+ruff = "^0.1.14"
+mypy = "^1.8.0"
 isort = "*"
 creosote = "*"
-pre-commit = "*"
+pre-commit = "^3.6.0"
 tomli = "^2.1.0"
 poetry-dynamic-versioning = "^1.4.1"
+pytest = "^8.0.0"
+pytest-cov = "^5.0.0"
+pytest-asyncio = "^0.24.0"
+pytest-mock = "^3.12.0"
+mkdocs = "^1.5.3"
+mkdocs-material = "^9.5.3"
+mkdocstrings = {extras = ["python"], version = "^0.24.0"}
+black = "^24.1.1"
+numpy = ">=1.24.0,<1.25.0"  # Pin numpy version
+pandas = ">=2.0.0,<2.1.0"   # Pin pandas version to be compatible with numpy
+
+[tool.poetry.group.profiling]
+optional = true
+
+[tool.poetry.group.profiling.dependencies]
+memray = { version = "^1.11.0", markers = "sys_platform != 'win32'" }
 
 [tool.poetry.group.debug]
 optional = true
@@ -76,7 +79,6 @@ pytest = "*"
 pytest-cov = "*"
 pytest-mock = "*"
 pytest-asyncio = "*"
-pandas = "*"
 pydantic = "*"
 
 [tool.coverage.run]

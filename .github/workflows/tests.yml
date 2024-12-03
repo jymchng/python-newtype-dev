@@ -79,7 +79,12 @@ jobs:
           virtualenvs-in-project: true
           installer-parallel: false # Currently there seems to be some race-condition in windows
 
-      - name: Install library
+      - name: Install library (Windows)
+        if: runner.os == 'Windows'
+        run: poetry install --no-interaction --without profiling
+
+      - name: Install library (not Windows)
+        if: runner.os != 'Windows'
         run: poetry install --no-interaction
 
       - uses: actions/cache@v4
