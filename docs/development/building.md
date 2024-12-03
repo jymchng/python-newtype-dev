@@ -19,38 +19,46 @@ git clone https://github.com/yourusername/python-newtype.git
 cd python-newtype
 ```
 
-2. Install dependencies using Poetry:
-```bash
-poetry install --no-root
-```
-
-3. Activate the virtual environment:
-```bash
-poetry shell
-```
-
-Alternatively, you can use `venv` to create and activate a virtual environment.
-Create a new virtual environment using `venv`:
+2. Create a new virtual environment using `venv`:
 
 For Linux:
+
 ```bash
 python3 -m venv venv
-source venv/bin/activate
+source .venv/bin/activate
 ```
 For Windows:
+
 ```bash
 python -m venv venv
-.\venv\Scripts\activate
+.\.venv\Scripts\activate
 ```
 
-Then, get poetry to use it:
+3. Install `poetry`:
+
+```bash
+pip install poetry
+```
+
+4. Get poetry to use the virtual environment in the project directory:
+
 ```bash
 poetry config virtualenvs.in-project true
 ```
+
 This will ensure that Poetry uses the current virtual environment located in the project directory.
 You can also set the virtual environment path explicitly if needed.
 For example:
-`poetry config virtualenvs.path /path/to/your/venvs`
+
+```bash
+poetry config virtualenvs.path /path/to/your/venvs
+```
+
+Then, you can install all development dependencies using
+
+```bash
+poetry install --with dev --no-root --no-interaction
+```
 
 ## Project Structure
 

@@ -57,7 +57,7 @@ dist-contents: build
 
 # Check code quality
 check:
-	ruff check .
+	ruff check . --fix
 	find . -wholename "./newtype/extensions/*.c" -exec cppcheck {} +
 
 # Format code
