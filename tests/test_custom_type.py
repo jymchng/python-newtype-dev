@@ -169,7 +169,7 @@ def test_manager_employees():
     manager_one = Manager(Employee("Steve", 33), employees=[employee_one, employee_two])
 
     assert (
-        manager_one.from_dict.__get__(manager_one, Manager)(
+        manager_one.from_dict(
             {"name": "Julia", "age": 38}
         ).get_class_name()
         == "Manager"
@@ -177,12 +177,12 @@ def test_manager_employees():
     assert manager_one._newtype_init_kwargs_ == {"employees": [employee_one, employee_two]}
 
     assert (
-        Employee.from_dict.__get__(manager_one, Employee)(
+        Employee.from_dict(
             {"name": "Julia", "age": 38}
         ).get_class_name()
         == "Employee"
     )
-    assert manager_one.get_employees.__get__(manager_one, Manager)() == [
+    assert manager_one.get_employees() == [
         employee_one,
         employee_two,
     ]

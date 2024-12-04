@@ -128,8 +128,17 @@ dev: clean build test
 
 dev-debug: clean build-debug test
 
+install-poetry:
+	python -m pip install poetry
+
+install-dev-deps:
+	poetry lock
+	poetry install --no-interaction --no-root
+
 venv-poetry:
 	poetry config virtualenvs.in-project true
+
+install-test: install-poetry install-dev-deps venv-poetry dev
 
 # Help target
 help:

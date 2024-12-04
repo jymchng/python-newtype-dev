@@ -25,7 +25,10 @@ Technical Details:
 from typing import (
     TYPE_CHECKING,
     Any,
+    Sequence,
     TypeVar,
+    Union,
+    cast,
 )
 
 
@@ -66,7 +69,7 @@ UNDEFINED = object()
 T = TypeVar("T", bound=type)
 
 
-__GLOBAL_INTERNAL_TYPE_CACHE__: "WeakKeyDictionary[type, type]" = WeakKeyDictionary()
+__GLOBAL_INTERNAL_TYPE_CACHE__: "WeakKeyDictionary" = WeakKeyDictionary()
 
 
 def newtype_exclude(func: "Callable"):
@@ -108,7 +111,7 @@ def func_is_excluded(func):
     return getattr(func, NEWTYPE_EXCLUDE_FUNC_STR, False)
 
 
-def NewType(base_type: "type", **context: "Dict[str, Any]") -> "type":  # noqa: N802, C901
+def NewType(base_type: T, **context: "Dict[str, Any]") -> T:  # noqa: N802, C901
     """Create a new type that preserves type information through all operations.
 
     This is the main factory function for creating new types. It wraps an existing
@@ -155,7 +158,7 @@ def NewType(base_type: "type", **context: "Dict[str, Any]") -> "type":  # noqa: 
         NEWTYPE_LOGGER.debug("Exception occurred but ignored during caching of NewType")
         pass
 
-    class BaseNewType(base_type):
+    class BaseNewType(base_type):  # type: ignore[valid-type, misc]
         """Base class for all NewType instances.
 
         This class provides the core functionality for type preservation and
@@ -246,21 +249,22 @@ def NewType(base_type: "type", **context: "Dict[str, Any]") -> "type":  # noqa: 
                 NEWTYPE_LOGGER.debug(
                     "base_type.__new__ == object.__new__; base_type.__new__ = ", base_type.__new__
                 )
-                inst = base_type.__new__(cls)
+                inst = object.__new__(cls)
                 NEWTYPE_LOGGER.debug("inst: ", inst)
                 NEWTYPE_LOGGER.debug("type(value): ", repr(type(value)))
                 NEWTYPE_LOGGER.debug("_args: ", _args)
                 NEWTYPE_LOGGER.debug("_kwargs: ", _kwargs)
 
                 # copy all the attributes in `__dict__`
-                value_dict: dict = getattr(value, "__dict__", UNDEFINED)
+                value_dict: Union[dict, object] = getattr(value, "__dict__", UNDEFINED)
                 NEWTYPE_LOGGER.debug("value_dict: ", value_dict)
 
-                if value_dict is not UNDEFINED:
-                    [setattr(inst, k, v) for k, v in value_dict.items()]
+                if value_dict is not UNDEFINED and isinstance(value_dict, dict):
+                    for k, v in value_dict.items():
+                        setattr(inst, k, v)
 
                 # copy all the attributes in `__slots__`
-                value_slots: tuple = getattr(value, "__slots__", UNDEFINED)
+                value_slots: Union[Sequence[str], object] = getattr(value, "__slots__", UNDEFINED)
                 NEWTYPE_LOGGER.debug("value_slots: ", value_slots)
                 if value_slots is not UNDEFINED:
                     for k in value_slots:
@@ -271,7 +275,7 @@ def NewType(base_type: "type", **context: "Dict[str, Any]") -> "type":  # noqa: 
                 NEWTYPE_LOGGER.debug(
                     "base_type.__new__ != object.__new__; base_type.__new__ = ", base_type.__new__
                 )
-                inst = base_type.__new__(cls, value)
+                inst = cast("BaseNewType", base_type.__new__(cls, value))
             return inst
 
         def __init__(self, _value=None, *_args, **_kwargs):
@@ -297,4 +301,4 @@ def NewType(base_type: "type", **context: "Dict[str, Any]") -> "type":  # noqa: 
         NEWTYPE_LOGGER.debug("Exception occurred but ignored during caching of NewType")
         pass
 
-    return BaseNewType
+    return cast(T, BaseNewType)
