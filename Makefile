@@ -73,6 +73,10 @@ clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
 
+clean-venv:
+	rm -fr .venv$(VERSION)
+	python$(VERSION) -m venv .venv$(VERSION)
+
 clean-deps:
 	pip freeze | xargs pip uninstall -y
 

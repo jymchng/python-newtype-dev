@@ -20,29 +20,31 @@ RUN apt-get update && apt-get install -y \
     python3-openssl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install pyenv
-RUN curl https://pyenv.run | bash
-
-# Set up environment variables for pyenv
-ENV PATH="/root/.pyenv/bin:/root/.pyenv/shims:$PATH"
-RUN pyenv install 3.8.12
-RUN pyenv install 3.9.7
-RUN pyenv install 3.10.0
-RUN pyenv install 3.11.0
-RUN pyenv install 3.12.0
-
-# Set global Python version
-RUN pyenv global 3.8.12
-
-# Install Poetry
-RUN curl -sSL https://install.python-poetry.org | python3 -
-
-# Copy project files
 COPY pyproject.toml poetry.lock ./
 COPY newtype/ ./newtype/
 COPY tests/ ./tests/
 COPY build.py ./
 COPY Makefile ./
+
+# Install pyenv
+RUN curl https://pyenv.run | bash
+
+# Set up environment variables for pyenv
+ENV PATH="/root/.pyenv/bin:/root/.pyenv/shims:$PATH"
+RUN pyenv install 3.8
+RUN pyenv install 3.9
+RUN pyenv install 3.10
+RUN pyenv install 3.11
+RUN pyenv install 3.12
+
+# Set global Python version
+RUN pyenv global 3.8
+
+# Install Poetry
+RUN curl -sSL https://install.python-poetry.org | python3 -
+
+# Copy project files
+
 
 # Create directory for test reports
 RUN mkdir -p test-reports
