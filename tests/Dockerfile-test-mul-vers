@@ -25,7 +25,8 @@ COPY newtype/ ./newtype/
 COPY tests/ ./tests/
 COPY build.py ./
 COPY Makefile ./
-
+COPY README.md ./
+COPY pyproject.toml ./
 # Install pyenv
 RUN curl https://pyenv.run | bash
 
@@ -44,7 +45,7 @@ RUN /bin/bash -c 'for version in 3.8; do \
     done;'
 
 # Second stage
-FROM base as test
+FROM debian:bullseye-slim as test
 WORKDIR /app
 
 # Install python3-venv for virtual environment support
@@ -60,6 +61,8 @@ COPY newtype/ ./newtype/
 COPY tests/ ./tests/
 COPY build.py ./
 COPY Makefile ./
+COPY README.md ./
+COPY pyproject.toml ./
 
 # Set global Python version
 RUN /bin/bash -c 'for version in 3.8; do \
