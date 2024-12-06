@@ -1,0 +1,20 @@
+FROM python:3.12-slim as py3.12
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    make
+
+# Copy application files
+COPY newtype/ ./newtype/
+COPY tests/ ./tests/
+COPY build.py ./
+COPY Makefile ./
+COPY README.md ./
+COPY pyproject.toml ./
+
+RUN python -m venv .venv && \
+    export PATH=".venv/bin:$PATH" && \
+    make install-test VERSION=3.12
+
+CMD ["echo", "all tests done"]

@@ -1,5 +1,5 @@
 # Python binary
-PYTHON := python
+PYTHON := python$(VERSION)
 
 # Poetry
 POETRY := poetry
@@ -40,7 +40,7 @@ docker-demo-clean:
 docker-demo: docker-demo-build docker-demo-run docker-demo-clean
 
 docker-test-mulvers-build:
-	docker build -t $(DOCKER_TESTS_MULVER_IMAGE):$(DOCKER_TAG) -f $(DOCKERFILE_TESTS_MULVER_PATH) .
+	docker build -t $(DOCKER_TESTS_MULVER_IMAGE):$(DOCKER_TAG) --progress=plain -f $(DOCKERFILE_TESTS_MULVER_PATH) .
 
 docker-test-mulvers-run:
 	docker run --rm $(DOCKER_TESTS_MULVER_IMAGE):$(DOCKER_TAG)
@@ -133,7 +133,7 @@ dev: clean build test
 dev-debug: clean build-debug test
 
 install-poetry:
-	python -m pip install poetry
+	$(PYTHON) -m pip install poetry
 
 install-dev-deps:
 	poetry lock
@@ -142,7 +142,7 @@ install-dev-deps:
 venv-poetry:
 	poetry config virtualenvs.in-project true
 
-install-test: install-poetry install-dev-deps venv-poetry dev
+install-test: install-poetry venv-poetry install-dev-deps dev
 
 # Help target
 help:

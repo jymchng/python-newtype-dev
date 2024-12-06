@@ -1,0 +1,20 @@
+FROM python:3.8-slim as py3.8
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    make
+
+# Copy application files
+COPY newtype/ ./newtype/
+COPY tests/ ./tests/
+COPY build.py ./
+COPY Makefile ./
+COPY README.md ./
+COPY pyproject.toml ./
+
+RUN python -m venv .venv && \
+    . .venv/bin/activate && \
+    make install-test
+
+CMD ["echo", "all tests done"]
