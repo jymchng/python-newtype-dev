@@ -27,7 +27,7 @@ PYTEST_FLAGS := -s -vv
 all: clean build test format check venv-poetry clean-deps
 
 # Docker targets
-docker-demo-build: build
+docker-demo-build:
 	docker build -t $(DOCKER_DEMO_IMAGE):$(DOCKER_TAG) -f $(DOCKERFILE_DEMO_PATH) .
 
 docker-demo-run:
@@ -39,7 +39,7 @@ docker-demo-clean:
 # Run complete Docker demo cycle: build, run, clean
 docker-demo: docker-demo-build docker-demo-run docker-demo-clean
 
-docker-test-mulvers-build: build
+docker-test-mulvers-build:
 	docker build -t $(DOCKER_TESTS_MULVER_IMAGE):$(DOCKER_TAG) -f $(DOCKERFILE_TESTS_MULVER_PATH) .
 
 docker-test-mulvers-run:

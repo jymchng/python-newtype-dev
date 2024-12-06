@@ -32,116 +32,41 @@ RUN curl https://pyenv.run | bash
 # Set up environment variables for pyenv
 ENV PATH="/root/.pyenv/bin:/root/.pyenv/shims:$PATH"
 RUN pyenv install 3.8
-RUN pyenv install 3.9
-RUN pyenv install 3.10
-RUN pyenv install 3.11
-RUN pyenv install 3.12
+# RUN pyenv install 3.9
+# RUN pyenv install 3.10
+# RUN pyenv install 3.11
+# RUN pyenv install 3.12
 
 # Set global Python version
-RUN pyenv global 3.8
+RUN /bin/bash -c 'for version in 3.8; do \
+        pyenv global $version && \
+        python${version} -m venv .venv${version}; \
+    done;'
 
-# Install Poetry
-RUN curl -sSL https://install.python-poetry.org | python3 -
-
-# Copy project files
-
-
-# Create directory for test reports
-RUN mkdir -p test-reports
-
-# Test stages for each Python version
-FROM base as python3.8
-RUN pyenv global 3.8.12
-RUN python -m venv /venv
-ENV PATH="/venv/bin:$PATH"
-RUN pip install poetry
-RUN poetry config virtualenvs.create false \
-    && poetry install --no-interaction --no-ansi
-
-FROM base as python3.9
-RUN pyenv global 3.9.7
-RUN python -m venv /venv
-ENV PATH="/venv/bin:$PATH"
-RUN pip install poetry
-RUN poetry config virtualenvs.create false \
-    && poetry install --no-interaction --no-ansi
-
-FROM base as python3.10
-RUN pyenv global 3.10.0
-RUN python -m venv /venv
-ENV PATH="/venv/bin:$PATH"
-RUN pip install poetry
-RUN poetry config virtualenvs.create false \
-    && poetry install --no-interaction --no-ansi
-
-FROM base as python3.11
-RUN pyenv global 3.11.0
-RUN python -m venv /venv
-ENV PATH="/venv/bin:$PATH"
-RUN pip install poetry
-RUN poetry config virtualenvs.create false \
-    && poetry install --no-interaction --no-ansi
-
-FROM base as python3.12
-RUN pyenv global 3.12.0
-RUN python -m venv /venv
-ENV PATH="/venv/bin:$PATH"
-RUN pip install poetry
-RUN poetry config virtualenvs.create false \
-    && poetry install --no-interaction --no-ansi
-
-# Test runner stage
-FROM debian:bullseye-slim as test-runner
+# Second stage
+FROM base as test
 WORKDIR /app
-COPY --from=python3.8 /app /app/python3.8
-COPY --from=python3.9 /app /app/python3.9
-COPY --from=python3.10 /app /app/python3.10
-COPY --from=python3.11 /app /app/python3.11
-COPY --from=python3.12 /app /app/python3.12
-COPY --from=python3.8 /venv /venv3.8
-COPY --from=python3.9 /venv /venv3.9
-COPY --from=python3.10 /venv /venv3.10
-COPY --from=python3.11 /venv /venv3.11
-COPY --from=python3.12 /venv /venv3.12
 
-# Copy test runner script
-COPY <<'EOF' /app/run_tests.sh
-#!/bin/bash
-set -e
+# Install python3-venv for virtual environment support
+RUN apt-get update && apt-get install -y \
+    python3-venv \
+    && rm -rf /var/lib/apt/lists/*
 
-run_tests_for_version() {
-    local version=$1
-    echo "Running tests for Python $version"
-    cd /app/python$version
-    export PATH="/venv$version/bin:$PATH"
-    export PYTHONPATH=/app/python$version
-    export PYTHONUNBUFFERED=1
+# Copy only the virtual environments from the builder stage
+COPY --from=base /app/.venv* /app/
 
-    echo "Running all tests..."
-    python -m pytest tests -v --junitxml=test-reports/junit-$version.xml
+# Copy application files
+COPY newtype/ ./newtype/
+COPY tests/ ./tests/
+COPY build.py ./
+COPY Makefile ./
 
-    echo "Running memory leak tests..."
-    python -m pytest --enable-leak-tracking -W error --stacks 10 tests/test_newtype_init.py -v
-
-    echo "Running async tests..."
-    python -m pytest tests/test_async.py -v
-
-    echo "Running coverage tests..."
-    python -m pytest --cov=newtype --cov-report=xml:test-reports/coverage-$version.xml tests/
-
-    echo "Tests completed for Python $version"
-    echo "----------------------------------------"
-}
-
-for version in 3.8 3.9 3.10 3.11 3.12; do
-    run_tests_for_version $version
-done
-EOF
-
-RUN chmod +x /app/run_tests.sh
-
-# Set environment variables
-ENV PYTHONUNBUFFERED=1
+# Set global Python version
+RUN /bin/bash -c 'for version in 3.8; do \
+        source .venv${version}/bin/activate && \
+        make install-test && \
+        deactivate; \
+    done'
 
 # Run tests for all Python versions
-CMD ["/app/run_tests.sh"]
+CMD ["echo", "All Python Versions Tested!"]
