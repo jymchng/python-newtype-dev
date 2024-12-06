@@ -144,6 +144,9 @@ venv-poetry:
 
 install-test: install-poetry venv-poetry install-dev-deps dev
 
+list-packaged: build
+	tar -tf $(shell ls -1 dist/*.tar.gz | sort -V | tail -n 1)
+
 # Help target
 help:
 	@echo "Available targets:"
