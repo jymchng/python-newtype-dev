@@ -138,6 +138,7 @@ exclude = [
     "build.py",
     "scripts/",
     "tests/",
+    "examples/email_str.py",
 ]
 
 [tool.ruff.format]

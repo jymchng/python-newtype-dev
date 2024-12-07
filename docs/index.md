@@ -7,66 +7,98 @@ Welcome to the python-newtype documentation! This library implements a powerful 
 python-newtype is unique in its implementation of the "new type" concept from type theory. The key feature is its ability to maintain subtype relationships through method calls and provide robust type validation. Here's a comprehensive example that showcases its main features:
 
 ```python
-from functools import cached_property
-from typing import Optional
-from newtype import NewType
+from newtype import NewType, newtype_exclude
+import pytest
+import re
 
 class EmailStr(NewType(str)):
-    def __init__(self, value: str, strict: bool = True):
-        if strict and "@" not in value:
-            raise ValueError("Invalid email format")
+
+    def __init__(self, value: str):
         super().__init__(value)
+        if '@' not in value:
+            raise TypeError("`EmailStr` requires a '@' symbol within")
+        self._local_part, self._domain_part = value.split('@')
+
+    @newtype_exclude
+    def __str__(self):
+        return f"<Email - Local Part: {self.local_part}; Domain Part: {self.domain_part}>"
 
     @property
-    def domain(self) -> Optional[str]:
-        if "@" in self:
-            return self.split("@")[1]
-        return None
+    def local_part(self):
+        """Return the local part of the email address."""
+        return self._local_part
 
-    @cached_property
-    def name(self) -> Optional[str]:
-        if "@" in self:
-            return self.split("@")[0]
-        return None
+    @property
+    def domain_part(self):
+        """Return the domain part of the email address."""
+        return self._domain_part
+
+    @property
+    def full_email(self):
+        """Return the full email address."""
+        return str(self)
+
+    @classmethod
+    def from_string(cls, email: str):
+        """Create an EmailStr instance from a string."""
+        return cls(email)
 
     @staticmethod
-    def from_str(s: str) -> "EmailStr":
-        return EmailStr(s)
+    def is_valid_email(email: str) -> bool:
+        """Check if the provided string is a valid email format."""
+        email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        return re.match(email_regex, email) is not None
 
-# Create a more specific email type
-class Gmail(EmailStr):
-    def __init__(self, value: str, strict: bool = True):
-        if strict and "@gmail.com" not in value:
-            raise ValueError("Invalid email format")
-        super().__init__(value, strict)
+def test_emailstr_replace():
+    """`EmailStr` uses `str.replace(..)` as its own method, returning an instance of `EmailStr`
+    if the resultant `str` instance is a value `EmailStr`."""
 
-# Usage examples
-email = EmailStr("user@example.com")
-assert email.domain == "example.com"  # Property access
-assert email.name == "user"  # Cached property
-assert isinstance(email, str)  # True - maintains str inheritance
-assert isinstance(email, EmailStr)  # True - proper type checking
+    peter_email = EmailStr("peter@gmail.com")
+    smith_email = EmailStr("smith@gmail.com")
 
-# Method chaining with type preservation
-new_email = email.replace("user@example.com", "user1@example.com")
-assert isinstance(new_email, EmailStr)  # Still an EmailStr!
-assert new_email.name == "user1"
+    with pytest.raises(Exception):
+        # this raises because `peter_email` is no longer an instance of `EmailStr`
+        peter_email = peter_email.replace("peter@gmail.com", "petergmail.com")
 
-# Validation and inheritance
-gmail = Gmail("hello@gmail.com")
-assert gmail.domain == "gmail.com"
-assert isinstance(gmail, EmailStr) # Although `from_str` returns `EmailStr`, which is the supertype, the subtype is not constructed
+    # this works because the entire email can be 'replaced'
+    james_email = smith_email.replace("smith@gmail.com", "james@gmail.com")
 
-# Invalid inputs raise errors
-try:
-    EmailStr("invalid")  # Raises ValueError - missing @
-except ValueError:
-    pass
+    # comparison with `str` is built-in
+    assert james_email == "james@gmail.com"
 
-try:
-    Gmail("user@example.com")  # Raises ValueError - not gmail.com
-except ValueError:
-    pass
+    # `james_email` is still an `EmailStr`
+    assert isinstance(james_email, EmailStr)
+
+    # this works because the local part can be 'replaced'
+    jane_email = james_email.replace("james", "jane")
+
+    # `jane_email` is still an `EmailStr`
+    assert isinstance(jane_email, EmailStr)
+    assert jane_email == "jane@gmail.com"
+
+def test_emailstr_properties_methods():
+    """Test the property, class method, and static method of EmailStr."""
+
+    # Test property
+    email = EmailStr("test@example.com")
+    # `property` is not coerced to `EmailStr`
+    assert email.full_email == "<Email - Local Part: test; Domain Part: example.com>"
+    assert isinstance(email.full_email, str)
+    # `property` is not coerced to `EmailStr`
+    assert not isinstance(email.full_email, EmailStr)
+    assert email.local_part == "test"
+    assert email.domain_part == "example.com"
+
+    # Test class method
+    email_from_string = EmailStr.from_string("classmethod@example.com")
+    # `property` is not coerced to `EmailStr`
+    assert email_from_string.full_email == "<Email - Local Part: classmethod; Domain Part: example.com>"
+    assert email_from_string.local_part == "classmethod"
+    assert email_from_string.domain_part == "example.com"
+
+    # Test static method
+    assert EmailStr.is_valid_email("valid.email@example.com") is True
+    assert EmailStr.is_valid_email("invalid-email.com") is False
 ```
 
 ## Key Features
