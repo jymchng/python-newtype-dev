@@ -6,7 +6,7 @@ Thank you for considering contributing to python-newtype! This document provides
 
 1. Fork and clone the repository:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/python-newtype-dev.git
+   git clone https://github.com/python-newtype-dev/python-newtype-dev.git
    cd python-newtype-dev
    ```
 
