@@ -18,6 +18,7 @@ DOCKER_TAG := latest
 
 # Files and directories
 SO_FILES := newtypemethod.cpython-*-linux-gnu.so newtypeinit.cpython-*-linux-gnu.so $(PROJECT_DIR)/$(EXTENSIONS)/newtypemethod.cpython-*-linux-gnu.so $(PROJECT_DIR)/$(EXTENSIONS)/newtypeinit.cpython-*-linux-gnu.so
+PYD_FILES := newtypemethod.*-*.pyd newtypeinit.*-*.pyd $(PROJECT_DIR)/$(EXTENSIONS)/newtypemethod.*-*.pyd $(PROJECT_DIR)/$(EXTENSIONS)/newtypeinit.*-*.pyd
 BUILD_DIR := build
 PYTEST_FLAGS := -s -vv
 
@@ -69,6 +70,7 @@ format:
 clean:
 	rm -fr dist
 	rm -f $(SO_FILES)
+	rm -f $(PYD_FILES)
 	rm -rf $(BUILD_DIR)
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
