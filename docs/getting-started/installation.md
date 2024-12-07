@@ -30,7 +30,7 @@ For development or to access the latest features:
 
 2. Install in development mode with extra dependencies:
    ```bash
-   pip install -e ".[dev]"
+   make install-dev-deps
    ```
 
 ### Building from Source
@@ -48,7 +48,7 @@ For development or to access the latest features:
 
 3. Install the built package:
    ```bash
-   pip install .
+   pip install dist/*.tar.gz
    ```
 
 ## Verifying Installation

@@ -18,7 +18,7 @@ Thank you for considering contributing to python-newtype! This document provides
 
 3. Install development dependencies:
    ```bash
-   pip install -e ".[dev]"
+   make install-dev-deps
    ```
 
 ## Development Workflow

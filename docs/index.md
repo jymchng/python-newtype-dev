@@ -118,24 +118,6 @@ assert isinstance(text.unsafe_operation(), str)      # Regular str
 assert isinstance(text.safe_operation(), SafeStr)    # SafeStr
 ```
 
-### Memory Optimization
-```python
-class MemoryEfficientStr(NewType(str)):
-    __slots__ = ['_cached_value']
-
-    def __init__(self, value: str):
-        super().__init__()
-        self._cached_value = None
-
-    def compute_expensive(self):
-        if self._cached_value is None:
-            self._cached_value = self.upper() + self.lower()
-        return self._cached_value
-
-text = MemoryEfficientStr("Hello")
-print(text.compute_expensive())  # "HELLOhello"
-```
-
 ### Advanced Validation
 ```python
 from typing import Union, Optional
@@ -148,7 +130,7 @@ class IntegerStr(NewType(str)):
             int(value, base)
         except ValueError:
             raise ValueError(f"Value must be a valid integer in base {base}")
-        super().__init__()
+        super().__init__(value)
 
     def to_int(self, base: Optional[int] = None) -> int:
         return int(self, base or 10)

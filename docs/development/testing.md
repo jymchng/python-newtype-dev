@@ -226,41 +226,6 @@ exclude_lines = [
     "raise NotImplementedError",
 ]
 ```
-
-## Test Organization
-
-### Test Class Structure
-
-```python
-class TestBasicTypes:
-    def test_enhanced_string(self):
-        pass
-
-    def test_validated_list(self):
-        pass
-
-class TestAdvancedFeatures:
-    def test_method_interception(self):
-        pass
-
-    def test_type_composition(self):
-        pass
-```
-
-### Parameterized Tests
-
-```python
-@pytest.mark.parametrize("input_type,wrapped_type", [
-    (str, "enhanced string"),
-    (list, "validated list"),
-    (dict, "config dict"),
-])
-def test_type_wrapping(input_type, wrapped_type):
-    WrappedType = NewType(input_type)
-    instance = WrappedType()
-    assert isinstance(instance, input_type)
-```
-
 ## Best Practices
 
 1. **Test Isolation**
@@ -282,37 +247,3 @@ def test_type_wrapping(input_type, wrapped_type):
    - Keep tests simple and focused
    - Use helper functions for common operations
    - Follow the same code style as main code
-
-## Continuous Integration
-
-Example GitHub Actions workflow:
-
-```yaml
-name: Tests
-
-on: [push, pull_request]
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [3.7, 3.8, 3.9, "3.10"]
-
-    steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: |
-        pip install poetry
-        poetry install
-    - name: Run tests
-      run: |
-        poetry run pytest --cov=newtype
-        poetry run coverage xml
-    - name: Upload coverage
-      uses: codecov/codecov-action@v2
-```

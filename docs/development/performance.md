@@ -72,35 +72,6 @@ class SimpleList(NewType(list)):
 regular_list = []
 ```
 
-### 3. Cache Computed Values
-
-Cache computed values when possible:
-
-```python
-class CachedStr(NewType(str)):
-    def __init__(self, *args, **kwargs):
-        super().__init__()
-        self._reversed = None
-
-    def reverse(self):
-        if self._reversed is None:
-            self._reversed = self[::-1]
-        return self._reversed
-```
-
-### 4. Use __slots__ for Memory Optimization
-
-When creating many instances, use __slots__ to reduce memory usage:
-
-```python
-class MemoryEfficientStr(NewType(str)):
-    __slots__ = ['_cached_value']
-
-    def __init__(self, *args, **kwargs):
-        super().__init__()
-        self._cached_value = None
-```
-
 ## Benchmarking
 
 Always benchmark your specific use case to ensure performance meets your requirements. Use Python's `timeit` module or a profiling tool like cProfile for accurate measurements.

@@ -85,10 +85,12 @@ clean-deps:
 # Build extensions
 build: clean
 	$(POETRY) build
+	poetry lock && poetry export -f requirements.txt --output requirements-docs.txt --with docs
 
 # Build with debug printing enabled
 build-debug: clean
 	export __PYNT_DEBUG__="true" && make build
+	poetry lock && poetry export -f requirements.txt --output requirements-docs.txt --with docs
 
 # Install dependencies
 install: build
