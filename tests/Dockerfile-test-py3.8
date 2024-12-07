@@ -1,11 +1,17 @@
+# Use Python 3.8 slim image as the base
 FROM python:3.8-slim as py3.8
+
+# Set the working directory
 WORKDIR /app
 
+# Install necessary system packages
 RUN apt-get update && apt-get install -y \
-    build-essential \
-    make
+    gcc \
+    make \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy application files
+# Copy application files into the container
 COPY newtype/ ./newtype/
 COPY tests/ ./tests/
 COPY build.py ./
@@ -13,8 +19,40 @@ COPY Makefile ./
 COPY README.md ./
 COPY pyproject.toml ./
 
+# Create a virtual environment and install test dependencies
 RUN python -m venv .venv && \
     . .venv/bin/activate && \
-    make install-test
+    make install-test && \
+    deactivate
 
+FROM python:3.8-slim as py3.8
+
+# Change to the client directory
+WORKDIR /client
+
+# Install necessary system packages
+RUN apt-get update && apt-get install -y \
+    gcc \
+    make \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy the distribution files and example script
+COPY dist/ ./dist/
+COPY tests/ ./
+COPY Makefile ./
+COPY examples/demo.py ./
+
+# Install the package from the distribution
+RUN python -m venv .venv && \
+    . .venv/bin/activate && \
+    python -m pip install dist/*.tar.gz && \
+    python -c "from newtype import NewType" && \
+    python -m demo && \
+    python -m pip install pytest && \
+    python -m pip install pandas && \
+    make test && \
+    deactivate
+
+# Set the default command to execute when the container starts
 CMD ["echo", "all tests done"]

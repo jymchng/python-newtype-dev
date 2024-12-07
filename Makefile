@@ -135,14 +135,14 @@ dev-debug: clean build-debug test
 install-poetry:
 	$(PYTHON) -m pip install poetry
 
-install-dev-deps:
+install-dev-deps: install-poetry venv-poetry
 	poetry lock
 	poetry install --no-interaction --no-root
 
 venv-poetry:
 	poetry config virtualenvs.in-project true
 
-install-test: install-poetry venv-poetry install-dev-deps dev
+install-test: install-dev-deps dev
 
 list-packaged: build
 	tar -tf $(shell ls -1 dist/*.tar.gz | sort -V | tail -n 1)

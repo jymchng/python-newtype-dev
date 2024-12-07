@@ -2,6 +2,7 @@
 
 # Create logs directory if it doesn't exist
 mkdir -p ./tests/logs
+make build
 
 # Build Docker images in parallel with logging
 docker build -t python-newtype-test-mul-vers:3.8 -f ./tests/Dockerfile-test-py3.8 . > ./tests/logs/py3.8-test.log 2>&1 &
