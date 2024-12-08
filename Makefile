@@ -131,6 +131,9 @@ test-leak:
 test-file:
 	$(PYTHON) -m pytest $(FILE) $(PYTEST_FLAGS)
 
+test-e2e:
+	bash tests/build_test_pyvers_docker_images.sh
+
 # Development workflow targets
 dev: clean build test
 

@@ -1,7 +1,8 @@
 import pytest
 from conftest import LEAK_LIMIT, limit_leaks
+import re
 
-from newtype import NewType
+from newtype import NewType, newtype_exclude
 
 
 class Base:
@@ -71,3 +72,88 @@ def test_supertype_subtype_both_have___slots__():
 
     assert a.hi == 1
     assert a.bye == 2
+
+
+class EmailStr(NewType(str)):
+    __slots__ = (
+        '_local_part',
+        '_domain_part',
+    )
+
+    def __init__(self, value: str):
+        super().__init__(value)
+        if "@" not in value:
+            raise TypeError("`EmailStr` requires a '@' symbol within")
+        self._local_part, self._domain_part = value.split("@")
+
+    @newtype_exclude
+    def __str__(self):
+        return f"<Email - Local Part: {self.local_part}; Domain Part: {self.domain_part}>"
+
+    @property
+    def local_part(self):
+        """Return the local part of the email address."""
+        return self._local_part
+
+    @property
+    def domain_part(self):
+        """Return the domain part of the email address."""
+        return self._domain_part
+
+    @property
+    def full_email(self):
+        """Return the full email address."""
+        return str(self)
+
+    @classmethod
+    def from_string(cls, email: str):
+        """Create an EmailStr instance from a string."""
+        return cls(email)
+
+    @staticmethod
+    def is_valid_email(email: str) -> bool:
+        """Check if the provided string is a valid email format."""
+        email_regex = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+        return re.match(email_regex, email) is not None
+
+
+class OEmailStr(str):
+    __slots__ = (
+        '_local_part',
+        '_domain_part',
+    )
+
+    def __new__(cls, value: str):
+        return super().__new__(cls, value)
+
+
+def test_oemail_str__slots__():
+    # subclass of `str` with defined `__slots__`
+    # is expected to NOT have attributes NOT defined within `__slots__`
+    oemail = OEmailStr("test@example.com")
+
+    with pytest.raises(AttributeError):
+        oemail.hi = "bye"
+        assert oemail.hi == "bye"
+
+
+def test_regular_classes_without_base_class__slots__():
+
+    class Base:
+        __slots__ = ()
+
+    class Derived(Base):
+        __slots__ = (
+            'attr1',
+            'attr2',
+        )
+
+        def __init__(self):
+            super().__init__()
+            self.attr1 = None
+            self.attr2 = None
+
+    with pytest.raises(AttributeError):
+        d = Derived()
+        d.attr3 = "hey"
+        assert d.attr3 == "hey"
