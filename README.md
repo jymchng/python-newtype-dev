@@ -3,7 +3,7 @@
 # python-newtype
 
 ## Documentation
-<a href="https://spyt.asyncmove.com">
+<a href="https://py-nt.asyncmove.com">
   <img src="https://img.shields.io/badge/docs-passing-brightgreen.svg" width="100" alt="docs passing">
 </a>
 
@@ -12,7 +12,6 @@
 <a href="https://pypi.python.org/pypi/python-newtype"><img src="https://img.shields.io/pypi/v/python-newtype.svg" alt="PyPi"></a>
 
 ### CI/CD
-<a href="https://github.com/jymchng/python-newtype-dev/actions?query=workflow%3Atests"><img src="https://github.com/jymchng/python-newtype-dev/actions/workflows/tests.yaml/badge.svg?branch=main" alt="GHA Status"></a>
 <a href="https://codecov.io/github/jymchng/python-newtype-dev?branch=main"><img src="https://codecov.io/github/jymchng/python-newtype-dev/coverage.svg?branch=main" alt="Coverage"></a>
 
 ### License and Issues
@@ -24,7 +23,7 @@
 ### Development and Quality
 <a href="https://github.com/jymchng/python-newtype-dev/network/members"><img src="https://img.shields.io/github/forks/jymchng/python-newtype-dev" alt="Forks"></a>
 <a href="https://github.com/jymchng/python-newtype-dev/stargazers"><img src="https://img.shields.io/github/stars/jymchng/python-newtype-dev" alt="Stars"></a>
-<a href="https://pypi.python.org/pypi/python-newtype-dev"><img src="https://img.shields.io/pypi/dm/python-newtype-dev" alt="Downloads"></a>
+<a href="https://pypi.python.org/pypi/python-newtype"><img src="https://img.shields.io/pypi/dm/python-newtype" alt="Downloads"></a>
 <a href="https://github.com/jymchng/python-newtype-dev/graphs/contributors"><img src="https://img.shields.io/github/contributors/jymchng/python-newtype-dev" alt="Contributors"></a>
 <a href="https://github.com/jymchng/python-newtype-dev/commits/main"><img src="https://img.shields.io/github/commit-activity/m/jymchng/python-newtype-dev" alt="Commits"></a>
 <a href="https://github.com/jymchng/python-newtype-dev/commits/main"><img src="https://img.shields.io/github/last-commit/jymchng/python-newtype-dev" alt="Last Commit"></a>
