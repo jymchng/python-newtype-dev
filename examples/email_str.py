@@ -1,13 +1,21 @@
+import pytest
+
+
 import re
 
-import pytest
 
 from newtype import NewType, newtype_exclude
 
 
 class EmailStr(NewType(str)):
+    # you can define `__slots__` to save space
+    __slots__ = (
+        '_local_part',
+        '_domain_part',
+    )
+
     def __init__(self, value: str):
-        super().__init__(value)
+        super().__init__()
         if "@" not in value:
             raise TypeError("`EmailStr` requires a '@' symbol within")
         self._local_part, self._domain_part = value.split("@")
@@ -96,6 +104,14 @@ def test_emailstr_properties_methods():
     # Test static method
     assert EmailStr.is_valid_email("valid.email@example.com") is True
     assert EmailStr.is_valid_email("invalid-email.com") is False
+
+
+def test_email_str__slots__():
+    email = EmailStr("test@example.com")
+
+    with pytest.raises(AttributeError):
+        email.hi = "bye"
+        assert email.hi == "bye"
 
 
 # Run the tests
