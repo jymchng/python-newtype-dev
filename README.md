@@ -189,7 +189,7 @@ For detailed documentation, visit [py-nt.asyncmove.com](https://py-nt.asyncmove.
 - C compiler (for building extensions)
 - Development packages:
   ```bash
-  pip install -e ".[dev]"
+  make install-dev-deps
   ```
 
 ### Building from Source
