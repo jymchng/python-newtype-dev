@@ -9,7 +9,7 @@
 
 ### Compatibility and Version
 <img src="https://img.shields.io/badge/%3E=python-3.8-blue.svg" alt="Python compat">
-<a href="https://pypi.python.org/pypi/python-newtype-dev"><img src="https://img.shields.io/pypi/v/python-newtype-dev.svg" alt="PyPi"></a>
+<a href="https://pypi.python.org/pypi/python-newtype"><img src="https://img.shields.io/pypi/v/python-newtype.svg" alt="PyPi"></a>
 
 ### CI/CD
 <a href="https://github.com/jymchng/python-newtype-dev/actions?query=workflow%3Atests"><img src="https://github.com/jymchng/python-newtype-dev/actions/workflows/tests.yaml/badge.svg?branch=main" alt="GHA Status"></a>
