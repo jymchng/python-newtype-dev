@@ -139,6 +139,7 @@ exclude = [
     "scripts/",
     "tests/",
     "examples/email_str.py",
+    "examples/bounded_wrapped_ints.py",
 ]
 
 [tool.ruff.format]
