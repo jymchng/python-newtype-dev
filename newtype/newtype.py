@@ -194,7 +194,7 @@ def NewType(base_type: T, **context: "Dict[str, Any]") -> T:  # noqa: N802, C901
                     NEWTYPE_INIT_KWARGS_STR,
                 )
 
-        def __init_subclass__(cls, **context) -> None:
+        def __init_subclass__(cls, **init_subclass_context) -> None:
             """Initialize a subclass of BaseNewType.
 
             This method is called when creating a new subclass of BaseNewType.
@@ -207,7 +207,7 @@ def NewType(base_type: T, **context: "Dict[str, Any]") -> T:  # noqa: N802, C901
             Args:
                 **context: Additional context for subclass initialization
             """
-            super().__init_subclass__(**context)
+            super().__init_subclass__(**init_subclass_context)
             NEWTYPE_LOGGER.debug(f"cls: {cls}")
             NEWTYPE_LOGGER.debug(base_type, base_type.__dict__)
             NEWTYPE_LOGGER.debug(f"cls.__dict__: {cls.__dict__}")
