@@ -117,13 +117,12 @@ def can_subclass_have___slots__(base_type: T) -> bool:
         class _Test(base_type):  # type: ignore[valid-type, misc]
             __slots__ = ("a", "b")
 
-        _Test()
     except TypeError:
         return False
     return True
 
 
-def NewType(base_type: T, **context: "Dict[str, Any]") -> T:  # noqa: N802, C901
+def NewType(base_type: T, **_context: "Dict[str, Any]") -> T:  # noqa: N802, C901
     """Create a new type that preserves type information through all operations.
 
     This is the main factory function for creating new types. It wraps an existing
@@ -164,10 +163,8 @@ def NewType(base_type: T, **context: "Dict[str, Any]") -> T:  # noqa: N802, C901
     try:
         # we try to see if it is cached, if it is not, no problem either
         if base_type in __GLOBAL_INTERNAL_TYPE_CACHE__:
-            NEWTYPE_LOGGER.debug(f"`{base_type}` found in cache")
             return __GLOBAL_INTERNAL_TYPE_CACHE__[base_type]
     except KeyError:
-        NEWTYPE_LOGGER.debug("Exception occurred but ignored during caching of NewType")
         pass
 
     class BaseNewType(base_type):  # type: ignore[valid-type, misc]
@@ -208,30 +205,18 @@ def NewType(base_type: T, **context: "Dict[str, Any]") -> T:  # noqa: N802, C901
                 **context: Additional context for subclass initialization
             """
             super().__init_subclass__(**init_subclass_context)
-            NEWTYPE_LOGGER.debug(f"cls: {cls}")
-            NEWTYPE_LOGGER.debug(base_type, base_type.__dict__)
-            NEWTYPE_LOGGER.debug(f"cls.__dict__: {cls.__dict__}")
 
             constructor = cls.__init__
-            original_cls_dict = {}
-            for k, v in cls.__dict__.items():
-                original_cls_dict[k] = v
-            NEWTYPE_LOGGER.debug("original_cls_dict: ", original_cls_dict)
+            original_cls_dict: "Dict[str, Any]" = {}  # noqa: UP037
+            original_cls_dict.update(cls.__dict__)
             for k, v in base_type.__dict__.items():
                 if callable(v) and (k not in object.__dict__) and (k not in original_cls_dict):
-                    NEWTYPE_LOGGER.debug(
-                        f"callable(v) and (k not in object.__dict__) and \
-                            (k not in original_cls_dict) ; k: {k}"
-                    )
                     setattr(cls, k, NewTypeMethod(v, base_type))
                 elif k not in object.__dict__:
                     if k == "__dict__":
                         continue
                     setattr(cls, k, v)
-                    NEWTYPE_LOGGER.debug("Set")
-            NEWTYPE_LOGGER.debug(f"original_cls_dict: {original_cls_dict}")
             for k, v in original_cls_dict.items():
-                NEWTYPE_LOGGER.debug(f"k in original_cls_dict: {k}")
                 if (
                     callable(v)
                     and k != "__init__"
@@ -243,26 +228,7 @@ def NewType(base_type: T, **context: "Dict[str, Any]") -> T:  # noqa: N802, C901
                     if k == "__dict__":
                         continue
                     setattr(cls, k, v)
-                    NEWTYPE_LOGGER.debug("Set")
-            NEWTYPE_LOGGER.debug("Setting cls.__init__")
             cls.__init__ = NewTypeInit(constructor)  # type: ignore[method-assign]
-            NEWTYPE_LOGGER.debug("Setting cls.__init__ completed")
-            # if hasattr(cls, "__slots__"):
-            #     NEWTYPE_LOGGER.debug(f"cls.__slots__: {cls.__slots__}")
-            #     BaseNewType.__slots__ = (
-            #         *(base_type.__slots__ if hasattr(base_type, "__slots__") else ()),
-            #         *cls.__slots__,
-            #         NEWTYPE_INIT_ARGS_STR,
-            #         NEWTYPE_INIT_KWARGS_STR,
-            #     )
-            #     NEWTYPE_LOGGER.debug(
-            #         f"cls.__slots__: {cls.__slots__}, at end of `__init_subclass__`"
-            #     )
-            # NEWTYPE_LOGGER.debug(f"cls.__dict__: {cls.__dict__}, at end of `__init_subclass__`")
-            if hasattr(BaseNewType, "__slots__"):
-                NEWTYPE_LOGGER.debug(
-                    f"BaseNewType.__slots__: {BaseNewType.__slots__}, at end of `__init_subclass__`"
-                )
 
         def __new__(cls, value=None, *_args, **_kwargs):
             """Create a new instance of BaseNewType.
@@ -276,35 +242,22 @@ def NewType(base_type: T, **context: "Dict[str, Any]") -> T:  # noqa: N802, C901
                 **_kwargs: Additional keyword arguments
             """
             if base_type.__new__ == object.__new__:
-                NEWTYPE_LOGGER.debug(
-                    "base_type.__new__ == object.__new__; base_type.__new__ = ", base_type.__new__
-                )
                 inst = object.__new__(cls)
-                NEWTYPE_LOGGER.debug("inst: ", inst)
-                NEWTYPE_LOGGER.debug("type(value): ", repr(type(value)))
-                NEWTYPE_LOGGER.debug("_args: ", _args)
-                NEWTYPE_LOGGER.debug("_kwargs: ", _kwargs)
 
                 # copy all the attributes in `__dict__`
-                value_dict: Union[dict, object] = getattr(value, "__dict__", UNDEFINED)
-                NEWTYPE_LOGGER.debug("value_dict: ", value_dict)
+                value_dict: Union[dict, object] = getattr(value, "__dict__", {})
 
-                if value_dict is not UNDEFINED and isinstance(value_dict, dict):
+                if isinstance(value_dict, dict):
                     for k, v in value_dict.items():
                         setattr(inst, k, v)
 
                 # copy all the attributes in `__slots__`
-                value_slots: Union[Sequence[str], object] = getattr(value, "__slots__", UNDEFINED)
-                NEWTYPE_LOGGER.debug("value_slots: ", value_slots)
-                if value_slots is not UNDEFINED:
-                    for k in value_slots:
-                        v = getattr(value, k, UNDEFINED)
-                        if v is not UNDEFINED:
-                            setattr(inst, k, v)
+                value_slots: Sequence[str] = getattr(value, "__slots__", ())
+                for k in value_slots:
+                    v = getattr(value, k, UNDEFINED)
+                    if v is not UNDEFINED:
+                        setattr(inst, k, v)
             else:
-                # NEWTYPE_LOGGER.debug(
-                #     "base_type.__new__ != object.__new__; base_type.__new__ = ", base_type.__new__
-                # )
                 inst = cast("BaseNewType", base_type.__new__(cls, value))
             return inst
 
@@ -320,15 +273,14 @@ def NewType(base_type: T, **context: "Dict[str, Any]") -> T:  # noqa: N802, C901
                 *_args: Additional positional arguments
                 **_kwargs: Additional keyword arguments
             """
+            # avoid python from calling `object.__init__`
             ...
 
     try:
         # we try to store it in a cache, if it fails, no problem either
         if base_type not in __GLOBAL_INTERNAL_TYPE_CACHE__:
-            NEWTYPE_LOGGER.debug(f"`base_type` = {base_type} is cached...")
             __GLOBAL_INTERNAL_TYPE_CACHE__[base_type] = BaseNewType
-    except Exception:
-        NEWTYPE_LOGGER.debug("Exception occurred but ignored during caching of NewType")
+    except Exception:  # noqa: S110
         pass
 
     return cast(T, BaseNewType)
