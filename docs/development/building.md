@@ -6,7 +6,7 @@ This guide covers how to build and package python-newtype for development and di
 
 Before building python-newtype, ensure you have the following installed:
 
-- Python 3.7 or later
+- Python 3.8 or later
 - Poetry (for dependency management)
 - pytest (for testing)
 - build (for building packages)

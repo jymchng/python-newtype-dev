@@ -47,18 +47,6 @@ The overhead is typically negligible for most applications but may become notice
 
 ### 1. Minimize Method Interception
 
-Only intercept methods when necessary:
-
-```python
-from newtype import NewType, newtype_exclude
-
-class OptimizedDict(NewType(dict)):
-    # Mark methods that don't need interception
-    @newtype_exclude
-    def get(self, key, default=None):
-        return super().get(key, default)
-```
-
 ### 2. Avoid Unnecessary Wrapping
 
 Don't wrap objects unnecessarily:
