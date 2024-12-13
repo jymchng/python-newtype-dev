@@ -19,8 +19,9 @@ logging.basicConfig(
 LOGGER = getLogger(__name__)
 LOGGER.info("Running `build.py`...")
 
-debug_print = (os.getenv('__PYNT_DEBUG__') == 'true') or False
+debug_print = (os.getenv("__PYNT_DEBUG__") == "true") or False
 LOGGER.info(f"`debug_print` = {debug_print}")
+
 
 def list_dir_contents(directory, depth, level=0):
     if level > depth:
@@ -51,6 +52,7 @@ def get_package_name(
     raise Exception(
         "Unable to determine what is the `PACKAGE_NAME` for this repository, set `default_name` parameter to a default name"
     )
+
 
 # Constants
 # Set `PROJECT_ROOT_DIR` to the directory of the current file, if in doubt with regards to path, always use relative to `PROJECT_ROOT_DIR`
@@ -100,6 +102,7 @@ def where_am_i() -> "Path":
     LOGGER.info(f"Running in the correct directory: {current_dir}")
     return PROJECT_ROOT_DIR
 
+
 def extra_compile_args():
     """A function to get all the extra compile arguments for the extension modules.
     Define your own arguments here.
@@ -130,11 +133,11 @@ def get_extension_modules():
     LOGGER.info(f"in function `get_extension_modules`; `include_dirs` = {include_dirs}")
 
     module_newtypemethod = Extension(
-    "newtype.extensions.newtypemethod",
-    sources=["newtype/extensions/newtype_meth.c"],
-    include_dirs=["newtype/extensions"],
-    extra_compile_args=["-D__DEBUG_PRINT__"] if debug_print else [],
-)
+        "newtype.extensions.newtypemethod",
+        sources=["newtype/extensions/newtype_meth.c"],
+        include_dirs=["newtype/extensions"],
+        extra_compile_args=["-D__DEBUG_PRINT__"] if debug_print else [],
+    )
 
     module_newtypeinit = Extension(
         "newtype.extensions.newtypeinit",
@@ -161,7 +164,6 @@ def copy_output_to_cmd_buildlib(cmd):
         LOGGER.info(f"Copying file from `{output}` to `{relative_extension_path}`")
         shutil.copyfile(output, relative_extension_path)
         LOGGER.info("File copied successfully")
-
 
 
 def build_c_extensions():
