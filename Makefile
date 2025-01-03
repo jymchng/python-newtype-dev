@@ -22,7 +22,7 @@ PYD_FILES := newtypemethod.*-*.pyd newtypeinit.*-*.pyd $(PROJECT_DIR)/$(EXTENSIO
 BUILD_DIR := build
 PYTEST_FLAGS := -s -vv
 
-.PHONY: all clean build test test-all test-debug test-custom test-free test-slots test-init test-leak install lint format check venv-poetry clean-deps docker-build docker-run docker-clean docker-demo dist-contents
+.PHONY: all clean build test test-all test-debug test-custom test-free test-slots test-init test-leak install lint format check venv-poetry clean-deps docker-build docker-run docker-clean docker-demo dist-contents check-version
 
 # Default target
 all: clean build test format check venv-poetry clean-deps
@@ -153,6 +153,30 @@ install-test: install-dev-deps dev
 
 list-packaged: build
 	tar -tf $(shell ls -1 dist/*.tar.gz | sort -V | tail -n 1)
+
+# Version verification
+check-version:
+	@echo "Checking version consistency..."
+	@DIST_FILE=$$(ls dist/python_newtype-*.tar.gz | sort -V | tail -n1); \
+	if [ ! -f "$$DIST_FILE" ]; then \
+		echo "Error: No distribution package found in dist/"; \
+		exit 1; \
+	fi; \
+	DIST_BASE=$$(basename "$$DIST_FILE" .tar.gz); \
+	DIST_VERSION=$$(tar -xOf "$$DIST_FILE" "$$DIST_BASE/newtype/__init__.py" | grep "__version__" | cut -d'"' -f2); \
+	GIT_VERSION=$$(git describe --tags --abbrev=0 | sed 's/^v//'); \
+	if [ -z "$$DIST_VERSION" ] || [ -z "$$GIT_VERSION" ]; then \
+		echo "Error: Could not extract version information"; \
+		exit 1; \
+	fi; \
+	if [ "$$DIST_VERSION" != "$$GIT_VERSION" ]; then \
+		echo "Version mismatch:"; \
+		echo "  Distribution version: $$DIST_VERSION"; \
+		echo "  Git tag version: $$GIT_VERSION"; \
+		exit 1; \
+	else \
+		echo "Version consistency check passed (version: $$DIST_VERSION)"; \
+	fi
 
 # Help target
 help:

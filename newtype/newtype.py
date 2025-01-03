@@ -122,7 +122,7 @@ def can_subclass_have___slots__(base_type: T) -> bool:
     return True
 
 
-def NewType(base_type: T, **_context: "Dict[str, Any]") -> T:  # noqa: N802, C901
+def NewType(base_type: T, **_context: "Dict[str, Any]") -> "T":  # noqa: N802, C901
     """Create a new type that preserves type information through all operations.
 
     This is the main factory function for creating new types. It wraps an existing
@@ -280,7 +280,7 @@ def NewType(base_type: T, **_context: "Dict[str, Any]") -> T:  # noqa: N802, C90
         # we try to store it in a cache, if it fails, no problem either
         if base_type not in __GLOBAL_INTERNAL_TYPE_CACHE__:
             __GLOBAL_INTERNAL_TYPE_CACHE__[base_type] = BaseNewType
-    except Exception:  # noqa: S110
+    except KeyError:  # noqa: S110
         pass
 
     return cast(T, BaseNewType)

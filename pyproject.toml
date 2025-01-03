@@ -140,6 +140,8 @@ exclude = [
     "tests/",
     "examples/email_str.py",
     "examples/bounded_wrapped_ints.py",
+    "examples/newtype_enums.py",
+    "examples/mutable.py",
 ]
 
 [tool.ruff.format]
@@ -368,4 +370,5 @@ exclude = [
     ".env",
     "build.py",
     "docs/*.py",
+    "examples/*.py",
 ]
