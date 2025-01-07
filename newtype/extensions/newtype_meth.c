@@ -117,12 +117,21 @@ static PyObject* NewTypeMethod_call(NewTypeMethodObject* self,
     return NULL;
   DEBUG_PRINT("`result` = %s\n", PyUnicode_AsUTF8(PyObject_Repr(result)));
 
+  // Need to save `result.__dict__` so that we can copy over the attributes
+  // from `self->obj` to `new_inst`, if `self->obj` is not NULL because
+  // constructor will remove the `__dict__` attribute from `result`
+  PyObject* result_dict = NULL;
+  if (PyObject_HasAttrString(result, "__dict__")) {
+    result_dict = PyObject_GetAttrString(result, "__dict__");
+  }
+
   if (self->obj == NULL && self->cls == NULL) {
-    // free standing function is being wrapped
+    Py_XDECREF(result_dict);  // Clean up before goto
     goto done;
   }
 
   if (self->cls && PyObject_TypeCheck(result, self->cls)) {
+    Py_XDECREF(result_dict);  // Clean up before goto
     goto done;
   }
 
@@ -211,6 +220,76 @@ static PyObject* NewTypeMethod_call(NewTypeMethodObject* self,
     if (new_inst == NULL) {
       return NULL;
     }
+
+    // Only proceed if we have all required objects and dictionaries
+    if (self->obj != NULL && result != NULL && new_inst != NULL
+        && result_dict != NULL)
+    {
+      PyObject* new_dict = NULL;
+      PyObject* new_keys = NULL;
+      PyObject* iter = NULL;
+      PyObject* key = NULL;
+      PyObject* value = NULL;
+
+      // Get new_inst's dictionary
+      if (!PyObject_HasAttrString(new_inst, "__dict__")) {
+        goto cleanup;
+      }
+      new_dict = PyObject_GetAttrString(new_inst, "__dict__");
+      if (new_dict == NULL) {
+        goto cleanup;
+      }
+
+      DEBUG_PRINT("`new_dict`: %s\n",
+                  PyUnicode_AsUTF8(PyObject_Repr(new_dict)));
+      DEBUG_PRINT("`result_dict`: %s\n",
+                  PyUnicode_AsUTF8(PyObject_Repr(result_dict)));
+
+      // Get the keys from new_dict
+      new_keys = PyDict_Keys(new_dict);
+      if (new_keys == NULL) {
+        goto cleanup;
+      }
+
+      DEBUG_PRINT("`new_keys`: %s\n",
+                  PyUnicode_AsUTF8(PyObject_Repr(new_keys)));
+
+      iter = PyObject_GetIter(new_keys);
+      if (iter == NULL) {
+        goto cleanup;
+      }
+
+      while ((key = PyIter_Next(iter)) != NULL) {
+        DEBUG_PRINT("`key`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(key)));
+
+        if (PyDict_GetItem(result_dict, key) == NULL) {
+          DEBUG_PRINT("Key: %s is not in result_dict\n",
+                      PyUnicode_AsUTF8(PyObject_Repr(key)));
+
+          if (PyObject_HasAttr(self->obj, key)) {
+            value = PyObject_GetAttr(self->obj, key);
+            if (value != NULL) {
+              if (PyObject_SetAttr(new_inst, key, value) >= 0) {
+                DEBUG_PRINT("`key` = `%s`, `value` = `%s` has been set\n",
+                            PyUnicode_AsUTF8(PyObject_Repr(key)),
+                            PyUnicode_AsUTF8(PyObject_Repr(value)));
+              }
+              Py_DECREF(value);
+            }
+          }
+        }
+        Py_DECREF(key);
+        key = NULL;  // Reset for next iteration
+      }
+
+    cleanup:
+      Py_XDECREF(key);  // In case loop exited with error
+      Py_XDECREF(iter);
+      Py_XDECREF(new_keys);
+      Py_XDECREF(new_dict);
+    }
+
+    Py_XDECREF(result_dict);
     DEBUG_PRINT("`new_inst`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(new_inst)));
     return new_inst;
   }

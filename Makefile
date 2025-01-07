@@ -89,8 +89,7 @@ build: clean
 
 # Build with debug printing enabled
 build-debug: clean
-	export __PYNT_DEBUG__="true" && make build
-	poetry lock && poetry export -f requirements.txt --output requirements-docs.txt --with docs
+	export __PYNT_DEBUG__="true" && $(POETRY) build && unset __PYNT_DEBUG__
 
 # Install dependencies
 install: build
@@ -102,7 +101,7 @@ test:
 
 # Run all tests with debug build
 test-debug: build-debug
-	$(PYTHON) -m pytest . $(PYTEST_FLAGS) && unset __PYNT_DEBUG__
+	$(PYTHON) -m pytest . $(PYTEST_FLAGS)
 
 # Run specific test suites
 test-custom:

@@ -26,3 +26,7 @@ def test_mutable_and_subtype():
 
     assert mutable_sub_type_copy.inner == 1
     assert mutable_sub_type_copy.inner2 == 3
+
+    mutable_sub_type_copy.inner2 = 4
+    assert mutable_sub_type.inner2 == 3
+    assert mutable_sub_type_copy.inner2 == 4
