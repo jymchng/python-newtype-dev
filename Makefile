@@ -85,6 +85,8 @@ clean-deps:
 # Build extensions
 build: clean
 	$(POETRY) build
+
+update-docs-deps:
 	poetry lock && poetry export -f requirements.txt --output requirements-docs.txt --with docs
 
 # Build with debug printing enabled
