@@ -295,11 +295,17 @@ static PyObject* NewTypeMethod_call(NewTypeMethodObject* self,
     }  // end of if (self->obj != NULL && result != NULL && new_inst != NULL
     // && result_dict != NULL)
 
+    // if instance of the subtype has `__slots__` (and/or has `__dict__`)
+    // but result does not
     if (self->obj != NULL && result != NULL && new_inst != NULL
         && result_slots != NULL)
     {
       PyObject* new_slots = NULL;
-      PyObject* iter = NULL;
+      PyObject* new_dict = NULL;
+      PyObject* new_keys = NULL;
+
+      PyObject* iter_slots = NULL;
+      PyObject* iter_dict = NULL;
       PyObject* key = NULL;
       PyObject* value = NULL;
 
@@ -320,12 +326,12 @@ static PyObject* NewTypeMethod_call(NewTypeMethodObject* self,
       DEBUG_PRINT("`new_slots`: %s\n",
                   PyUnicode_AsUTF8(PyObject_Repr(new_slots)));
 
-      iter = PyObject_GetIter(new_slots);
-      if (iter == NULL) {
+      iter_slots = PyObject_GetIter(new_slots);
+      if (iter_slots == NULL) {
         goto cleanup_for_slots;
       }
 
-      while ((key = PyIter_Next(iter)) != NULL) {
+      while ((key = PyIter_Next(iter_slots)) != NULL) {
         DEBUG_PRINT("`key`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(key)));
 
         DEBUG_PRINT("Key: %s is not in result_slots\n",
@@ -347,9 +353,13 @@ static PyObject* NewTypeMethod_call(NewTypeMethodObject* self,
       }
 
     cleanup_for_slots:
-      Py_XDECREF(key);  // In case loop exited with error
-      Py_XDECREF(iter);
+      Py_XDECREF(new_dict);
+      Py_XDECREF(new_keys);
       Py_XDECREF(new_slots);
+
+      Py_XDECREF(key);  // In case loop exited with error
+      Py_XDECREF(iter_slots);
+      Py_XDECREF(iter_dict);
     }  // end of if (self->obj != NULL && result != NULL && new_inst != NULL
     // && result_slots != NULL)
 
