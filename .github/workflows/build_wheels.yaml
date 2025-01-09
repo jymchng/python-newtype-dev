@@ -9,165 +9,101 @@ on:
 
 jobs:
   build_sdist:
-    name: "Build Source Distribution"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - uses: snok/install-poetry@v1
-      - run: |
-          poetry self add "poetry-dynamic-versioning[plugin]"
-          poetry build --format=sdist
-      - uses: actions/upload-artifact@v4
-        with:
-          name: sdist
-          path: dist/*.tar.gz
-
-  build_wheels:
-    name: ${{ matrix.os }} ${{ matrix.python }} ${{ matrix.arch }}
+    name: "sdist"
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        include:
-          # Windows builds (x64 only for now)
-          - os: windows-latest
-            python: cp38
-            arch: AMD64
-          - os: windows-latest
-            python: cp39
-            arch: AMD64
-          - os: windows-latest
-            python: cp310
-            arch: AMD64
-          - os: windows-latest
-            python: cp311
-            arch: AMD64
-          - os: windows-latest
-            python: cp312
-            arch: AMD64
-
-          # Linux builds (x86_64 only)
-          - os: ubuntu-latest
-            python: cp38
-            arch: x86_64
-          - os: ubuntu-latest
-            python: cp39
-            arch: x86_64
-          - os: ubuntu-latest
-            python: cp310
-            arch: x86_64
-          - os: ubuntu-latest
-            python: cp311
-            arch: x86_64
-          - os: ubuntu-latest
-            python: cp312
-            arch: x86_64
-
-          # macOS builds (x86_64 only)
-          - os: macos-13
-            python: cp38
-            arch: x86_64
-          - os: macos-13
-            python: cp39
-            arch: x86_64
-          - os: macos-13
-            python: cp310
-            arch: x86_64
-          - os: macos-13
-            python: cp311
-            arch: x86_64
-          - os: macos-13
-            python: cp312
-            arch: x86_64
-
+        os: [ubuntu-latest]
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out repository
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-python@v5
+      - name: Set up python 3.12
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      # Windows-specific setup
-      - name: Setup Visual Studio (Windows)
-        if: runner.os == 'Windows'
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: x64
+      - name: Install poetry
+        uses: snok/install-poetry@v1
 
-      # Linux-specific setup
-      - name: Setup Linux
-        if: runner.os == 'Linux'
+      - name: Build sdist
         run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential python3-dev patchelf
-
-      - uses: snok/install-poetry@v1
-        with:
-          version: 1.8.5
-          virtualenvs-create: false
-
-      - name: Build wheels
-        uses: pypa/cibuildwheel@v2.16.5
-        env:
-          CIBW_BUILD: ${{ matrix.python }}-*
-          CIBW_ARCHS: ${{ matrix.arch }}
-          CIBW_TEST_REQUIRES: pytest pandas
-          CIBW_TEST_COMMAND: |
-            python -c "import sys; print('Python:', sys.executable, sys.version)"
-            python -c "import platform; print('Platform:', platform.machine(), platform.architecture())"
-            python -c "import os; print('PATH:', os.environ.get('PATH'))"
-            python -c "import glob; print('SO files:', glob.glob('**/*.so', recursive=True))"
-            python -c "import newtype; print('newtype location:', newtype.__file__)"
-            python -c "from newtype.extensions import newtypeinit; print('newtypeinit exists')"
-            python -c "from newtype.extensions import newtypemethod; print('newtypemethod exists')"
-            pytest {package}/tests -v
-          CIBW_BUILD_VERBOSITY: 1
-          CIBW_BEFORE_BUILD: |
-            python -m pip install --upgrade pip
-            python -m pip install setuptools wheel poetry-core
-          # Common environment variables
-          CIBW_ENVIRONMENT: >-
-            PYTHONVERBOSE=1
-            SETUPTOOLS_USE_DISTUTILS=stdlib
-          # OS-specific environment variables
-          CIBW_ENVIRONMENT_WINDOWS: >-
-            DISTUTILS_USE_SDK=1
-            MSSdk=1
-          CIBW_ENVIRONMENT_MACOS: >-
-            MACOSX_DEPLOYMENT_TARGET=10.14
-            ARCHFLAGS="-arch x86_64"
-          CIBW_ENVIRONMENT_LINUX: >-
-            CFLAGS="-fPIC"
-            _PYTHON_HOST_PLATFORM="linux-x86_64"
+          poetry self add "poetry-dynamic-versioning[plugin]"
+          poetry build --format=sdist
 
       - uses: actions/upload-artifact@v4
         with:
-          name: wheel-${{ matrix.os }}-${{ matrix.python }}-${{ matrix.arch }}
-          path: wheelhouse/*.whl
+          name: wheels-sdist
+          path: dist/*.tar.gz
 
-  upload_pypi:
-    needs: [build_sdist, build_wheels]
-    runs-on: ubuntu-latest
+  build_wheels:
+    name: "${{ matrix.os }} py${{ matrix.python-version }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        include:
+          - os: macos-13
+            python-version: "3.12"
+            target: arm64
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install poetry
+        uses: snok/install-poetry@v1
+
+      - name: Install dependencies
+        run: |
+          poetry self add "poetry-dynamic-versioning[plugin]"
+          poetry install --only main
+
+      - name: Build wheel
+        run: poetry build --format=wheel
+
+      - name: Setup test environment
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest pandas
+          python -m pip install dist/*.whl
+
+      - name: Run tests
+        run: |
+          cd tests
+          python -m pytest
+
+      - name: Upload wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.os }}-py${{ matrix.python-version }}${{ matrix.target && format('-{0}', matrix.target) || '' }}
+          path: dist/*.whl
+
+  upload_to_pypi:
     if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
+    needs: ["build_sdist", "build_wheels"]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
         with:
-          path: dist
-          pattern: wheel-*
+          path: wheels
+          pattern: wheels-*
           merge-multiple: true
-      - uses: actions/download-artifact@v4
-        with:
-          path: dist
-          name: sdist
+
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.PYPI_TOKEN }}
-          packages_dir: dist/
+          packages_dir: wheels/
           skip_existing: true
