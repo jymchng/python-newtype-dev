@@ -192,20 +192,25 @@ poetry self add poetry-dynamic-versioning
 
 ### To Release a New Version
 
-1. Create and push a tag:
-```bash
-git tag v1.0.0
-git push origin v1.0.0
+1. Set the version to the next patch version:
+```
+poetry version patch
 ```
 
-2. Build distribution packages:
+2. Commit your changes and push to the repository.
+
 ```bash
-poetry build
+git commit -m "Release version 0.1.3"
 ```
 
-3. Upload to PyPI:
-```bash
-poetry publish
+3. Set the tag to the new version:
+```
+git tag v0.1.3
+```
+
+4. Push the changes to the repository:
+```
+git push --tags
 ```
 
 ## Development Guidelines
