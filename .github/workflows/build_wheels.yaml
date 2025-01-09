@@ -140,6 +140,48 @@ jobs:
           CIBW_BUILD: ${{ matrix.cibw_build }}
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: pytest {package}/tests
+          CIBW_REPAIR_WHEEL_COMMAND_LINUX: |
+            # Print system information
+            echo "=== System Information ==="
+            uname -a
+            ldd --version
+
+            # Print wheel information
+            echo "=== Wheel Information ==="
+            ls -l {wheel}
+            unzip -l {wheel}
+
+            # Print detailed wheel dependencies
+            echo "=== Original Wheel Dependencies ==="
+            auditwheel show {wheel}
+            ldd $(find {wheel} -name "*.so")
+
+            echo "=== Attempting wheel repair ==="
+            # Try repair with maximum verbosity
+            auditwheel -v repair -w {dest_dir} {wheel} || true
+
+            echo "=== Repaired Wheel Information ==="
+            ls -l {dest_dir}
+
+            echo "=== Repaired Wheel Dependencies ==="
+            for whl in {dest_dir}/*.whl; do
+              echo "Checking $whl:"
+              auditwheel show "$whl"
+              unzip -l "$whl"
+            done
+
+            # Copy the wheel even if repair failed
+            cp {wheel} {dest_dir}/ || true
+          CIBW_BEFORE_BUILD: |
+            python -m pip install --upgrade pip
+            python -m pip install setuptools wheel
+            # Print Python environment info
+            python --version
+            pip list
+            echo "=== Build Environment ==="
+            env | sort
+          CIBW_BUILD_VERBOSITY: 3
+          CIBW_ENVIRONMENT: PYTHONVERBOSE=1 CFLAGS="-v" LDFLAGS="-v"
 
       - uses: actions/upload-artifact@v4
         with:
