@@ -59,31 +59,62 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Sanitize matrix.cibw_build
-        id: sanitize_build
-        run: echo "CIBW_BUILD_SANITIZED=$(echo '${{ matrix.cibw_build }}' | sed 's/\*/_/g')" >> $GITHUB_ENV
-        shell: bash
-
       - name: Set up python 3.12
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           architecture: ${{ matrix.cibw_archs == 'x86' && 'x86' || 'x64' }}
 
-      # Install Visual Studio components
-      - name: Install Visual Studio Components
+      # Install Visual Studio Build Tools
+      - name: Install Visual Studio Build Tools
         shell: powershell
         run: |
-          $VS_PATH = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\BuildTools"
-          if (-not (Test-Path $VS_PATH)) {
-            Write-Host "Installing Visual Studio Build Tools..."
-            Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_buildtools.exe -OutFile vs_buildtools.exe
-            Start-Process -FilePath .\vs_buildtools.exe -ArgumentList "--quiet", "--wait", "--norestart", "--nocache", `
-              "--installPath", "$VS_PATH", `
-              "--add", "Microsoft.VisualStudio.Component.VC.Tools.x86.x64", `
-              "--add", "Microsoft.VisualStudio.Component.Windows10SDK.19041", `
-              "--add", "Microsoft.VisualStudio.Component.VC.14.29.CLI.Support", `
-              "--add", "Microsoft.VisualStudio.Component.VC.14.29.ARM64" -Wait
+          # Download the Visual Studio Build Tools bootstrapper
+          Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_buildtools.exe -OutFile vs_buildtools.exe
+
+          # Install Build Tools with required components
+          Start-Process -FilePath .\vs_buildtools.exe -ArgumentList `
+            "--quiet", "--wait", "--norestart", "--nocache", `
+            "--installPath", "C:\BuildTools", `
+            "--add", "Microsoft.VisualStudio.Component.VC.Tools.x86.x64", `
+            "--add", "Microsoft.VisualStudio.Component.Windows10SDK.19041", `
+            "--add", "Microsoft.VisualStudio.Component.VC.14.29.CLI.Support", `
+            "--add", "Microsoft.VisualStudio.Component.VC.14.29.ARM64", `
+            "--add", "Microsoft.VisualStudio.Component.VC.Redist.14.Latest", `
+            "--add", "Microsoft.VisualStudio.Component.Windows11SDK.22621" `
+            -Wait -PassThru
+
+      # Set up Visual Studio environment
+      - name: Set up Visual Studio environment
+        shell: powershell
+        run: |
+          $arch = "${{ matrix.cibw_archs }}"
+          $vsPath = "C:\BuildTools"
+          $vcvarsall = "$vsPath\VC\Auxiliary\Build\vcvarsall.bat"
+
+          # Create a batch file to set up environment
+          @"
+          @echo off
+          call "$vcvarsall" $($arch.ToLower()) || exit /b 1
+          set > %TEMP%\vcvars.txt
+          "@ | Out-File -FilePath setup_env.bat -Encoding ASCII
+
+          # Run the batch file and import environment variables
+          cmd /c "setup_env.bat && set > %TEMP%\vcvars.txt"
+          Get-Content "$env:TEMP\vcvars.txt" | ForEach-Object {
+            if ($_ -match '^([^=]+)=(.*)$') {
+              $name = $matches[1]
+              $value = $matches[2]
+              [System.Environment]::SetEnvironmentVariable($name, $value)
+            }
+          }
+
+          # Verify compiler is available
+          Write-Host "Checking cl.exe..."
+          where.exe cl.exe
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "cl.exe not found in PATH!"
+            exit 1
           }
 
       - name: Install poetry
@@ -111,12 +142,13 @@ jobs:
             python -m pip install setuptools wheel
             python -m pip install poetry-core
             python -m pip list
+            where cl.exe
           CIBW_BUILD_VERBOSITY: 3
           CIBW_ENVIRONMENT: |
             DISTUTILS_USE_SDK=1
             MSSdk=1
             PYTHONVERBOSITY=1
-            VS160COMNTOOLS="C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\Tools"
+            VS160COMNTOOLS="C:\BuildTools\Common7\Tools"
             VSCMD_ARG_TGT_ARCH=${{ matrix.cibw_archs == 'x86' && 'x86' || (matrix.cibw_archs == 'ARM64' && 'arm64' || 'x64') }}
             VCVARSALL_ARCH=${{ matrix.cibw_archs == 'x86' && 'x86' || (matrix.cibw_archs == 'ARM64' && 'arm64' || 'amd64') }}
             PY_VCRUNTIME_REDIST=true
@@ -143,24 +175,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Sanitize matrix.cibw_build
-        id: sanitize_build
-        run: echo "CIBW_BUILD_SANITIZED=$(echo '${{ matrix.cibw_build }}' | sed 's/\*/_/g')" >> $GITHUB_ENV
-        shell: bash
-
       - name: Set up QEMU
         if: matrix.cibw_archs != 'x86_64'
         uses: docker/setup-qemu-action@v3
         with:
           platforms: all
-
-      # Add Docker debug info
-      - name: Docker Info
-        run: |
-          docker info
-          docker version
-          docker ps
-          docker system df
 
       - name: Set up python 3.12
         uses: actions/setup-python@v5
@@ -177,7 +196,8 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential python3-dev
+          sudo apt-get install -y build-essential python3-dev patchelf
+          sudo apt-get install -y gcc g++ gfortran
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.16.5
@@ -186,46 +206,68 @@ jobs:
           CIBW_BUILD: ${{ matrix.cibw_build }}
           CIBW_TEST_REQUIRES: pytest pandas
           CIBW_TEST_COMMAND: |
-            ls -la {package}
             python -c "import sys; print('Python:', sys.version)"
-            python -c "import newtype; print('newtype:', newtype.__file__)"
-            pytest {package}/tests -v
+            python -c "import platform; print('Platform:', platform.machine(), platform.architecture())"
+            python -c "import os; print('PATH:', os.environ.get('PATH'))"
+            python -c "import glob; print('SO files:', glob.glob('/project/**/*.so', recursive=True))"
+            python -c "import newtype; print('newtype location:', newtype.__file__)"
+            python -c "from newtype.extensions import newtypeinit; print('newtypeinit exists')"
+            pytest /project/tests -v
           CIBW_BEFORE_BUILD: |
             python -m pip install --upgrade pip
             python -m pip install setuptools wheel
+            python -m pip install poetry-core
             python -m pip list
-            echo "=== Environment ==="
-            env | sort
+            python -c "import sys; print('Python location:', sys.executable)"
+            python -c "import sysconfig; print('Platform:', sysconfig.get_platform())"
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: |
-            # Print system information
             echo "=== System Information ==="
             uname -a
             cat /etc/os-release
 
-            # Print wheel information
             echo "=== Wheel Information ==="
             ls -l {wheel}
             unzip -l {wheel}
 
-            # Print detailed wheel dependencies
             echo "=== Original Wheel Dependencies ==="
             auditwheel show {wheel}
-            find {wheel} -name "*.so" -exec ldd {} \;
+            find . -name "*.so" -exec ldd {} \; 2>/dev/null || true
 
-            echo "=== Attempting wheel repair ==="
-            # Try repair with maximum verbosity
-            auditwheel -v repair -w {dest_dir} {wheel} || cp {wheel} {dest_dir}/
+            echo "=== Repairing Wheel ==="
+            auditwheel repair -w {dest_dir} {wheel} || cp {wheel} {dest_dir}/
+
+            echo "=== Final Wheel Dependencies ==="
+            auditwheel show {dest_dir}/*.whl
           CIBW_BUILD_VERBOSITY: 3
           CIBW_ENVIRONMENT: |
             PYTHONVERBOSE=1
-            CFLAGS="-v"
+            CFLAGS="-v -fPIC"
             LDFLAGS="-v"
-            LD_LIBRARY_PATH="/usr/local/lib"
-            PYTHONPATH="/usr/local/lib/python3/dist-packages"
+            LD_LIBRARY_PATH="/usr/local/lib:$LD_LIBRARY_PATH"
+            PYTHONPATH="/usr/local/lib/python3/dist-packages:$PYTHONPATH"
+            SETUPTOOLS_USE_DISTUTILS=stdlib
+            _PYTHON_HOST_PLATFORM="linux-${{ matrix.cibw_archs }}"
+
+      - name: Debug wheel contents
+        run: |
+          echo "=== Listing wheelhouse contents ==="
+          ls -R wheelhouse/
+          echo "=== Examining wheel files ==="
+          for whl in wheelhouse/*.whl; do
+            echo "=== Contents of $whl ==="
+            unzip -l "$whl"
+            echo "=== Extracting wheel to check SO files ==="
+            TMP_DIR=$(mktemp -d)
+            unzip -d "$TMP_DIR" "$whl"
+            echo "=== SO files in wheel ==="
+            find "$TMP_DIR" -name "*.so" -ls
+            echo "=== SO file dependencies ==="
+            find "$TMP_DIR" -name "*.so" -exec ldd {} \; 2>/dev/null || true
+          done
 
       - uses: actions/upload-artifact@v4
         with:
-          name: wheels-${{ matrix.os }}-${{ env.CIBW_BUILD_SANITIZED }}-${{ matrix.cibw_archs }}
+          name: wheels-${{ matrix.os }}-${{ matrix.cibw_build }}-${{ matrix.cibw_archs }}
           path: wheelhouse/*.whl
 
   build_wheels_macos:
@@ -246,11 +288,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Sanitize matrix.cibw_build
-        id: sanitize_build
-        run: echo "CIBW_BUILD_SANITIZED=$(echo '${{ matrix.cibw_build }}' | sed 's/\*/_/g')" >> $GITHUB_ENV
-        shell: bash
-
       - name: Set up python 3.12
         uses: actions/setup-python@v5
         with:
@@ -270,12 +307,13 @@ jobs:
           CIBW_BUILD: ${{ matrix.cibw_build }}
           CIBW_TEST_REQUIRES: pytest pandas
           CIBW_TEST_COMMAND: |
-            ls -R {package}
+            ls -la {package}
+            ls -la {package}/newtype/extensions/
             python -c "import sys; print('Python:', sys.executable, sys.version)"
             python -c "import platform; print('Platform:', platform.machine(), platform.architecture())"
             python -c "import os; print('PATH:', os.environ.get('PATH'))"
-            python -c "import newtype; print('newtype location:', newtype.__file__)"
             python -c "import glob; print('SO files:', glob.glob('{package}/**/*.so', recursive=True))"
+            python -c "import newtype; print('newtype location:', newtype.__file__)"
             python -c "from newtype.extensions import newtypeinit; print('newtypeinit exists')"
             pytest {package}/tests -v
           CIBW_BEFORE_BUILD: |
@@ -302,6 +340,9 @@ jobs:
             LDFLAGS="-v -arch x86_64"
             _PYTHON_HOST_PLATFORM="macosx-10.14-x86_64"
             SETUPTOOLS_USE_DISTUTILS=stdlib
+            DYLD_LIBRARY_PATH="/usr/local/lib:$DYLD_LIBRARY_PATH"
+            DYLD_PRINT_LIBRARIES=1
+            DYLD_PRINT_LIBRARIES_POST_LAUNCH=1
 
       - name: Debug wheel contents
         run: |
@@ -311,6 +352,13 @@ jobs:
           for whl in wheelhouse/*.whl; do
             echo "=== Contents of $whl ==="
             unzip -l "$whl"
+            echo "=== Extracting wheel to check SO files ==="
+            TMP_DIR=$(mktemp -d)
+            unzip -d "$TMP_DIR" "$whl"
+            echo "=== SO files in wheel ==="
+            find "$TMP_DIR" -name "*.so" -ls
+            echo "=== SO file dependencies ==="
+            find "$TMP_DIR" -name "*.so" -exec otool -L {} \;
           done
 
       - uses: actions/upload-artifact@v4
