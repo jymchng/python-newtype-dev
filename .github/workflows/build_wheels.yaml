@@ -176,6 +176,8 @@ jobs:
       - name: Install poetry
         uses: snok/install-poetry@v1
         with:
+          version: 1.8.5
+          installer-parallel: false # Currently there seems to be some race-condition in windows
           virtualenvs-create: false
           virtualenvs-in-project: false
 
