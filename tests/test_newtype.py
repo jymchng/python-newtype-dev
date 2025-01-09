@@ -120,6 +120,11 @@ def test_my_dataframe():
     df = pd.DataFrame({"A": [1, 2], "B": [4, 5]})
     my_df = MyDataFrame(df, 1, 2, 3)
 
+    assert df.at[0, "A"] == 1
+    assert df.at[1, "A"] == 2
+    assert df.at[0, "B"] == 4
+    assert df.at[1, "B"] == 5
+
     assert my_df.a == 1
     assert my_df.b == 2
     assert my_df.c == 3
@@ -129,6 +134,8 @@ def test_my_dataframe():
     assert my_df.a == 1
     assert my_df.b == 2
     assert my_df.c == 3
+
+    assert my_df.shape == (2, 2)
 
     assert my_df.at["A", 0] == 1
     assert my_df.at["A", 1] == 2
@@ -139,5 +146,14 @@ def test_my_dataframe():
     assert my_df.at["A", 1] == 69
 
     my_df = my_df.T
+
+    assert my_df.at[1, "A"] == 69
+    assert my_df.at[1, "B"] == 5
+
+    assert my_df.at[0, "A"] == 1
+    assert my_df.at[0, "B"] == 4
+
+    assert my_df.shape == (2, 2)
+
     with pytest.raises(AssertionError):
         my_df.drop("A", axis=1)

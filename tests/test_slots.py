@@ -157,3 +157,49 @@ def test_regular_classes_without_base_class__slots__():
         d = Derived()
         d.attr3 = "hey"
         assert d.attr3 == "hey"
+
+
+class SlottedBase:
+    __slots__ = ['inner']
+
+    def __init__(self, inner: int):
+        self.inner = inner
+
+    def copy(self):
+        return SlottedBase(self.inner)
+
+
+class SlottedSubType(NewType(SlottedBase)):
+    __slots__ = ['inner2']
+
+    def __init__(self, base: SlottedBase, inner2: int):
+        self.inner2 = inner2
+
+
+def test_slotted_types():
+    # Create instances
+    slotted_sub = SlottedSubType(SlottedBase(1), 2)
+    assert slotted_sub.inner == 1
+    assert slotted_sub.inner2 == 2
+
+    # Modify and copy
+    slotted_sub.inner2 = 3
+    slotted_copy = slotted_sub.copy()
+    assert slotted_sub.inner == 1
+    assert slotted_sub.inner2 == 3
+
+    # Verify copy has correct values
+    assert slotted_copy.inner == 1
+    assert slotted_copy.inner2 == 3
+
+    # Verify modifications don't affect original
+    slotted_copy.inner2 = 4
+    assert slotted_sub.inner2 == 3
+    assert slotted_copy.inner2 == 4
+
+    # Verify __slots__ are working
+    try:
+        slotted_sub.new_attr = 5  # Should raise AttributeError
+        assert False, "Should not be able to add new attributes"
+    except AttributeError:
+        pass

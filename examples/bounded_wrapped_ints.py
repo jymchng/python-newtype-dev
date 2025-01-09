@@ -10,8 +10,8 @@ class GenericWrappedBoundedInt_WithNewType(NewType(int)):  # never mind about th
 
     __CONCRETE_BOUNDED_INTS__ = WeakValueDictionary()
 
-    def __new__(self, value: int):
-        inst = super().__new__(self, value % self.MAX_VALUE)
+    def __new__(cls, value: int):
+        inst = super().__new__(cls, value % cls.MAX_VALUE)
         return inst
 
     def __repr__(self) -> str:

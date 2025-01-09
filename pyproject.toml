@@ -4,7 +4,7 @@ build-backend = "poetry_dynamic_versioning.backend"
 
 [tool.poetry]
 name = "python-newtype"
-version = "v0.1.2"
+version = "0.1.3"
 homepage = "https://github.com/jymchng/python-newtype-dev"
 repository = "https://github.com/jymchng/python-newtype-dev"
 license = "Apache-2.0"
@@ -140,6 +140,8 @@ exclude = [
     "tests/",
     "examples/email_str.py",
     "examples/bounded_wrapped_ints.py",
+    "examples/newtype_enums.py",
+    "examples/mutable.py",
 ]
 
 [tool.ruff.format]
@@ -368,4 +370,5 @@ exclude = [
     ".env",
     "build.py",
     "docs/*.py",
+    "examples/*.py",
 ]

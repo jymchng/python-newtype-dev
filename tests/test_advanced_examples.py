@@ -126,7 +126,7 @@ def test_email_str():
 
     new_email = email.replace("user@example.com", "user1@example.com")
     assert isinstance(new_email, EmailStr)
-    assert new_email.name == "user1"
+    assert new_email.name == "user1"  # name is not updated because it's cached
     assert new_email.domain == "example.com"
 
     # Test invalid email with non-strict mode
