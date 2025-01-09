@@ -230,9 +230,6 @@ static PyObject* NewTypeMethod_call(NewTypeMethodObject* self,
     if (self->obj != NULL && result != NULL && new_inst != NULL
         && result_dict != NULL)
     {
-      PyObject* new_dict = NULL;
-      PyObject* new_keys = NULL;
-      PyObject* iter = NULL;
       PyObject* key = NULL;
       PyObject* value = NULL;
 
@@ -240,8 +237,11 @@ static PyObject* NewTypeMethod_call(NewTypeMethodObject* self,
       if (!PyObject_HasAttrString(new_inst, "__dict__")) {
         goto cleanup;
       }
+
+      PyObject* new_dict = NULL;
       new_dict = PyObject_GetAttrString(new_inst, "__dict__");
       if (new_dict == NULL) {
+        Py_XDECREF(new_dict);
         goto cleanup;
       }
 
@@ -251,16 +251,20 @@ static PyObject* NewTypeMethod_call(NewTypeMethodObject* self,
                   PyUnicode_AsUTF8(PyObject_Repr(result_dict)));
 
       // Get the keys from new_dict
+      PyObject* new_keys = NULL;
       new_keys = PyDict_Keys(new_dict);
       if (new_keys == NULL) {
+        Py_XDECREF(new_keys);
         goto cleanup;
       }
 
       DEBUG_PRINT("`new_keys`: %s\n",
                   PyUnicode_AsUTF8(PyObject_Repr(new_keys)));
 
+      PyObject* iter = NULL;
       iter = PyObject_GetIter(new_keys);
       if (iter == NULL) {
+        Py_XDECREF(iter);
         goto cleanup;
       }
 
@@ -289,9 +293,6 @@ static PyObject* NewTypeMethod_call(NewTypeMethodObject* self,
 
     cleanup:
       Py_XDECREF(key);  // In case loop exited with error
-      Py_XDECREF(iter);
-      Py_XDECREF(new_keys);
-      Py_XDECREF(new_dict);
     }  // end of if (self->obj != NULL && result != NULL && new_inst != NULL
     // && result_dict != NULL)
 
@@ -309,7 +310,7 @@ static PyObject* NewTypeMethod_call(NewTypeMethodObject* self,
       PyObject* key = NULL;
       PyObject* value = NULL;
 
-      // Get new_inst's dictionary
+      // Get new_inst's slots
       if (!PyObject_HasAttrString(new_inst, "__slots__")) {
         goto cleanup_for_slots;
       }
@@ -334,23 +335,79 @@ static PyObject* NewTypeMethod_call(NewTypeMethodObject* self,
       while ((key = PyIter_Next(iter_slots)) != NULL) {
         DEBUG_PRINT("`key`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(key)));
 
-        DEBUG_PRINT("Key: %s is not in result_slots\n",
-                    PyUnicode_AsUTF8(PyObject_Repr(key)));
+        // Check if key is not in result_slots
+        if (PySequence_Contains(result_slots, key) == 0) {
+          DEBUG_PRINT("Key: %s is not in result_slots = %s\n",
+                      PyUnicode_AsUTF8(PyObject_Repr(key)),
+                      PyUnicode_AsUTF8(PyObject_Repr(result_slots)));
 
-        if (PyObject_HasAttr(self->obj, key)) {
-          value = PyObject_GetAttr(self->obj, key);
-          if (value != NULL) {
-            if (PyObject_SetAttr(new_inst, key, value) >= 0) {
-              DEBUG_PRINT("`key` = `%s`, `value` = `%s` has been set\n",
-                          PyUnicode_AsUTF8(PyObject_Repr(key)),
-                          PyUnicode_AsUTF8(PyObject_Repr(value)));
+          if (PyObject_HasAttr(self->obj, key)) {
+            value = PyObject_GetAttr(self->obj, key);
+            if (value != NULL) {
+              if (PyObject_SetAttr(new_inst, key, value) >= 0) {
+                DEBUG_PRINT("`key` = `%s`, `value` = `%s` has been set\n",
+                            PyUnicode_AsUTF8(PyObject_Repr(key)),
+                            PyUnicode_AsUTF8(PyObject_Repr(value)));
+              }
+              Py_DECREF(value);
+              value = NULL;  // Reset value for next iteration
             }
-            Py_DECREF(value);
+          }
+        }
+        Py_DECREF(key);
+        key = NULL;  // Reset key for next iteration
+      }  // end of while ((key = PyIter_Next(iter_slots)) != NULL), slots are
+         // successfully copied
+
+      // Get `new_inst`'s dictionary
+      if (!PyObject_HasAttrString(new_inst, "__dict__")) {
+        goto cleanup_for_slots;
+      }
+      new_dict = PyObject_GetAttrString(new_inst, "__dict__");
+      if (new_dict == NULL) {
+        goto cleanup_for_slots;
+      }
+
+      DEBUG_PRINT("`new_dict`: %s\n",
+                  PyUnicode_AsUTF8(PyObject_Repr(new_dict)));
+
+      // Get the keys from new_dict
+      new_keys = PyDict_Keys(new_dict);
+      if (new_keys == NULL) {
+        goto cleanup_for_slots;
+      }
+
+      DEBUG_PRINT("`new_keys`: %s\n",
+                  PyUnicode_AsUTF8(PyObject_Repr(new_keys)));
+
+      iter_dict = PyObject_GetIter(new_keys);
+      if (iter_dict == NULL) {
+        goto cleanup_for_slots;
+      }
+
+      while ((key = PyIter_Next(iter_dict)) != NULL) {
+        DEBUG_PRINT("`key`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(key)));
+
+        if (PySequence_Contains(result_slots, key) == 0) {
+          DEBUG_PRINT("Key: %s is not in result_dict\n",
+                      PyUnicode_AsUTF8(PyObject_Repr(key)));
+
+          if (PyObject_HasAttr(self->obj, key)) {
+            value = PyObject_GetAttr(self->obj, key);
+            if (value != NULL) {
+              if (PyObject_SetAttr(new_inst, key, value) >= 0) {
+                DEBUG_PRINT("`key` = `%s`, `value` = `%s` has been set\n",
+                            PyUnicode_AsUTF8(PyObject_Repr(key)),
+                            PyUnicode_AsUTF8(PyObject_Repr(value)));
+              }
+              Py_DECREF(value);
+            }
           }
         }
         Py_DECREF(key);
         key = NULL;  // Reset for next iteration
-      }
+      }  // end of while ((key = PyIter_Next(iter_dict)) != NULL), dict is
+         // successfully copied
 
     cleanup_for_slots:
       Py_XDECREF(new_dict);
