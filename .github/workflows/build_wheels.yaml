@@ -54,16 +54,6 @@ jobs:
             cibw_archs: "ARM64"
 
     steps:
-      - name: "Set environment variables (Windows)"
-        shell: pwsh
-        run: |
-          (Get-ItemProperty "HKLM:System\CurrentControlSet\Control\FileSystem").LongPathsEnabled
-
-      - name: Sanitize matrix.cibw_build
-        id: sanitize_build
-        run: echo "CIBW_BUILD_SANITIZED=$(echo '${{ matrix.cibw_build }}' | sed 's/\*/_/g')" >> $GITHUB_ENV
-        shell: bash
-
       - name: Check out repository
         uses: actions/checkout@v4
         with:
@@ -79,7 +69,15 @@ jobs:
         with:
           virtualenvs-create: false
           virtualenvs-in-project: false
-          installer-parallel: false # Currently there seems to be some race-condition in windows
+
+      # Add Visual Studio build tools
+      - name: Install Visual Studio Build Tools
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v2
+        with:
+          msbuild-architecture: x64
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.16.5
@@ -87,8 +85,19 @@ jobs:
           CIBW_ARCHS: ${{ matrix.cibw_archs }}
           CIBW_BUILD: ${{ matrix.cibw_build }}
           CIBW_TEST_SKIP: "*-win_arm64"
-          CIBW_TEST_REQUIRES: pytest
-          CIBW_TEST_COMMAND: pytest {package}/tests
+          CIBW_TEST_REQUIRES: pytest pandas
+          CIBW_TEST_COMMAND: |
+            dir /s {package}
+            pytest {package}/tests -v
+          CIBW_BEFORE_BUILD: |
+            python -m pip install --upgrade pip
+            python -m pip install setuptools wheel
+            python -m pip list
+          CIBW_BUILD_VERBOSITY: 3
+          CIBW_ENVIRONMENT: |
+            DISTUTILS_USE_SDK=1
+            MSSdk=1
+            PYTHONVERBOSE=1
 
       - uses: actions/upload-artifact@v4
         with:
@@ -122,6 +131,14 @@ jobs:
         with:
           platforms: all
 
+      # Add Docker debug info
+      - name: Docker Info
+        run: |
+          docker info
+          docker version
+          docker ps
+          docker system df
+
       - name: Set up python 3.12
         uses: actions/setup-python@v5
         with:
@@ -133,18 +150,34 @@ jobs:
           virtualenvs-create: false
           virtualenvs-in-project: false
 
+      # Add system dependencies
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential python3-dev
+
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.16.5
         env:
           CIBW_ARCHS: ${{ matrix.cibw_archs }}
           CIBW_BUILD: ${{ matrix.cibw_build }}
-          CIBW_TEST_REQUIRES: pytest
-          CIBW_TEST_COMMAND: pytest {package}/tests
+          CIBW_TEST_REQUIRES: pytest pandas
+          CIBW_TEST_COMMAND: |
+            ls -la {package}
+            python -c "import sys; print('Python:', sys.version)"
+            python -c "import newtype; print('newtype:', newtype.__file__)"
+            pytest {package}/tests -v
+          CIBW_BEFORE_BUILD: |
+            python -m pip install --upgrade pip
+            python -m pip install setuptools wheel
+            python -m pip list
+            echo "=== Environment ==="
+            env | sort
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: |
             # Print system information
             echo "=== System Information ==="
             uname -a
-            ldd --version
+            cat /etc/os-release
 
             # Print wheel information
             echo "=== Wheel Information ==="
@@ -154,34 +187,18 @@ jobs:
             # Print detailed wheel dependencies
             echo "=== Original Wheel Dependencies ==="
             auditwheel show {wheel}
-            ldd $(find {wheel} -name "*.so")
+            find {wheel} -name "*.so" -exec ldd {} \;
 
             echo "=== Attempting wheel repair ==="
             # Try repair with maximum verbosity
-            auditwheel -v repair -w {dest_dir} {wheel} || true
-
-            echo "=== Repaired Wheel Information ==="
-            ls -l {dest_dir}
-
-            echo "=== Repaired Wheel Dependencies ==="
-            for whl in {dest_dir}/*.whl; do
-              echo "Checking $whl:"
-              auditwheel show "$whl"
-              unzip -l "$whl"
-            done
-
-            # Copy the wheel even if repair failed
-            cp {wheel} {dest_dir}/ || true
-          CIBW_BEFORE_BUILD: |
-            python -m pip install --upgrade pip
-            python -m pip install setuptools wheel
-            # Print Python environment info
-            python --version
-            pip list
-            echo "=== Build Environment ==="
-            env | sort
+            auditwheel -v repair -w {dest_dir} {wheel} || cp {wheel} {dest_dir}/
           CIBW_BUILD_VERBOSITY: 3
-          CIBW_ENVIRONMENT: PYTHONVERBOSE=1 CFLAGS="-v" LDFLAGS="-v"
+          CIBW_ENVIRONMENT: |
+            PYTHONVERBOSE=1
+            CFLAGS="-v"
+            LDFLAGS="-v"
+            LD_LIBRARY_PATH="/usr/local/lib"
+            PYTHONPATH="/usr/local/lib/python3/dist-packages"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -198,7 +215,8 @@ jobs:
         cibw_build: ["cp38-*", "cp39-*", "cp310-*", "cp311-*", "cp312-*"]
         cibw_archs: ["x86_64"]
     env:
-      SYSTEM_VERSION_COMPAT: 0 # https://github.com/actions/setup-python/issues/469#issuecomment-1192522949
+      SYSTEM_VERSION_COMPAT: 0
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -219,7 +237,6 @@ jobs:
         uses: snok/install-poetry@v1
         with:
           version: 1.8.5
-          installer-parallel: false # Currently there seems to be some race-condition in windows
           virtualenvs-create: false
           virtualenvs-in-project: false
 
@@ -228,8 +245,30 @@ jobs:
         env:
           CIBW_ARCHS: ${{ matrix.cibw_archs }}
           CIBW_BUILD: ${{ matrix.cibw_build }}
-          CIBW_TEST_REQUIRES: pytest
-          CIBW_TEST_COMMAND: pytest {package}/tests
+          CIBW_TEST_REQUIRES: pytest pandas
+          CIBW_TEST_COMMAND: |
+            ls -R {package}
+            python -c "import newtype; print('newtype location:', newtype.__file__)"
+            python -c "from newtype.extensions import newtypeinit; print('newtypeinit exists')"
+            pytest {package}/tests -v
+          CIBW_BEFORE_BUILD: |
+            python -m pip install --upgrade pip
+            python -m pip install setuptools wheel
+            python -m pip list
+          CIBW_REPAIR_WHEEL_COMMAND: |
+            echo "=== Wheel Contents Before Repair ==="
+            unzip -l {wheel}
+            delocate-listdeps --all {wheel}
+            delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}
+            echo "=== Wheel Contents After Repair ==="
+            unzip -l {dest_dir}/*.whl
+          CIBW_BUILD_VERBOSITY: 3
+          CIBW_ENVIRONMENT: |
+            MACOSX_DEPLOYMENT_TARGET=10.14
+            ARCHFLAGS="-arch x86_64"
+            PYTHONVERBOSE=1
+            CFLAGS="-v"
+            LDFLAGS="-v"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -251,6 +290,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Sanitize matrix.cibw_build
+        id: sanitize_build
+        run: echo "CIBW_BUILD_SANITIZED=$(echo '${{ matrix.cibw_build }}' | sed 's/\*/_/g')" >> $GITHUB_ENV
+        shell: bash
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -265,30 +309,23 @@ jobs:
           CIBW_TEST_COMMAND: pytest {package}/tests
           CIBW_REPAIR_WHEEL_COMMAND: |
             echo "Target delocate archs: {delocate_archs}"
-
             ORIGINAL_WHEEL={wheel}
-
             echo "Running delocate-listdeps to list linked original wheel dependencies"
             delocate-listdeps --all $ORIGINAL_WHEEL
-
             echo "Renaming .whl file when architecture is 'macosx_arm64'"
             RENAMED_WHEEL=${ORIGINAL_WHEEL//x86_64/arm64}
-
             echo "Wheel will be renamed to $RENAMED_WHEEL"
             mv $ORIGINAL_WHEEL $RENAMED_WHEEL
-
             echo "Running delocate-wheel command on $RENAMED_WHEEL"
             delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v $RENAMED_WHEEL
-
             echo "Running delocate-listdeps to list linked wheel dependencies"
             WHEEL_SIMPLE_FILENAME="${RENAMED_WHEEL##*/}"
             delocate-listdeps --all {dest_dir}/$WHEEL_SIMPLE_FILENAME
-
             echo "DONE."
 
       - uses: actions/upload-artifact@v4
         with:
-          name: wheels-${{ matrix.os }}-${{ matrix.cibw_build }}-${{ matrix.cibw_archs }}
+          name: wheels-${{ matrix.os }}-${{ env.CIBW_BUILD_SANITIZED }}-${{ matrix.cibw_archs }}
           path: ./wheelhouse/*.whl
 
   upload_to_pypi:
