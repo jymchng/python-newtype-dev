@@ -34,51 +34,24 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Windows builds
-          - os: windows-latest
-            python: cp38
-            arch: x86
+          # Windows builds (x64 only for now)
           - os: windows-latest
             python: cp38
             arch: AMD64
           - os: windows-latest
             python: cp39
-            arch: x86
-          - os: windows-latest
-            python: cp39
-            arch: AMD64
-          - os: windows-latest
-            python: cp39
-            arch: ARM64
-          - os: windows-latest
-            python: cp310
-            arch: x86
-          - os: windows-latest
-            python: cp310
             arch: AMD64
           - os: windows-latest
             python: cp310
-            arch: ARM64
-          - os: windows-latest
-            python: cp311
-            arch: x86
+            arch: AMD64
           - os: windows-latest
             python: cp311
             arch: AMD64
           - os: windows-latest
-            python: cp311
-            arch: ARM64
-          - os: windows-latest
-            python: cp312
-            arch: x86
-          - os: windows-latest
             python: cp312
             arch: AMD64
-          - os: windows-latest
-            python: cp312
-            arch: ARM64
 
-          # Linux builds
+          # Linux builds (x86_64 only)
           - os: ubuntu-latest
             python: cp38
             arch: x86_64
@@ -95,7 +68,7 @@ jobs:
             python: cp312
             arch: x86_64
 
-          # macOS builds
+          # macOS builds (x86_64 only)
           - os: macos-13
             python: cp38
             arch: x86_64
@@ -111,45 +84,22 @@ jobs:
           - os: macos-13
             python: cp312
             arch: x86_64
-          - os: macos-13
-            python: cp38
-            arch: arm64
-          - os: macos-13
-            python: cp39
-            arch: arm64
-          - os: macos-13
-            python: cp310
-            arch: arm64
-          - os: macos-13
-            python: cp311
-            arch: arm64
-          - os: macos-13
-            python: cp312
-            arch: arm64
 
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Set up QEMU
-        if: runner.os == 'Linux' && matrix.arch != 'x86_64'
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: all
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-          architecture: ${{ matrix.arch == 'x86' && 'x86' || 'x64' }}
 
       # Windows-specific setup
-      - name: Setup Windows
+      - name: Setup Visual Studio (Windows)
         if: runner.os == 'Windows'
-        uses: microsoft/setup-msbuild@v2
+        uses: ilammy/msvc-dev-cmd@v1
         with:
-          msbuild-architecture: x64
-          vs-version: '[17.0,18.0)'
+          arch: x64
 
       # Linux-specific setup
       - name: Setup Linux
@@ -169,8 +119,19 @@ jobs:
           CIBW_BUILD: ${{ matrix.python }}-*
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_TEST_REQUIRES: pytest pandas
-          CIBW_TEST_SKIP: "*-win_arm64 *-macosx_arm64"
+          CIBW_TEST_COMMAND: |
+            python -c "import sys; print('Python:', sys.executable, sys.version)"
+            python -c "import platform; print('Platform:', platform.machine(), platform.architecture())"
+            python -c "import os; print('PATH:', os.environ.get('PATH'))"
+            python -c "import glob; print('SO files:', glob.glob('**/*.so', recursive=True))"
+            python -c "import newtype; print('newtype location:', newtype.__file__)"
+            python -c "from newtype.extensions import newtypeinit; print('newtypeinit exists')"
+            python -c "from newtype.extensions import newtypemethod; print('newtypemethod exists')"
+            pytest {package}/tests -v
           CIBW_BUILD_VERBOSITY: 1
+          CIBW_BEFORE_BUILD: |
+            python -m pip install --upgrade pip
+            python -m pip install setuptools wheel poetry-core
           # Common environment variables
           CIBW_ENVIRONMENT: >-
             PYTHONVERBOSE=1
@@ -181,9 +142,10 @@ jobs:
             MSSdk=1
           CIBW_ENVIRONMENT_MACOS: >-
             MACOSX_DEPLOYMENT_TARGET=10.14
-            ARCHFLAGS="-arch ${{ matrix.arch }}"
+            ARCHFLAGS="-arch x86_64"
           CIBW_ENVIRONMENT_LINUX: >-
             CFLAGS="-fPIC"
+            _PYTHON_HOST_PLATFORM="linux-x86_64"
 
       - uses: actions/upload-artifact@v4
         with:
