@@ -28,6 +28,8 @@ jobs:
 
       - name: Install poetry
         uses: snok/install-poetry@v1
+        with:
+          version: 1.8.5
 
       - name: Build sdist
         run: |
@@ -40,23 +42,59 @@ jobs:
           path: dist/*.tar.gz
 
   build_wheels:
-    name: "${{ matrix.os }} py${{ matrix.python-version }}"
+    name: "${{ matrix.os }} ${{ matrix.arch }} py${{ matrix.python-version }}"
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-20.04, windows-latest, macos-11, macos-13]
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
-        include:
+        arch: [x86_64, x86, arm64, aarch64, ppc64le, s390x]
+        exclude:
+          # Windows exclusions
+          - os: windows-latest
+            arch: aarch64
+          - os: windows-latest
+            arch: ppc64le
+          - os: windows-latest
+            arch: s390x
+          - os: windows-latest
+            python-version: "3.8"
+            arch: arm64
+          # macOS exclusions
+          - os: macos-11
+            arch: x86
+          - os: macos-11
+            arch: aarch64
+          - os: macos-11
+            arch: ppc64le
+          - os: macos-11
+            arch: s390x
           - os: macos-13
-            python-version: "3.12"
-            target: arm64
+            arch: x86
+          - os: macos-13
+            arch: aarch64
+          - os: macos-13
+            arch: ppc64le
+          - os: macos-13
+            arch: s390x
+          # Ubuntu exclusions
+          - os: ubuntu-20.04
+            arch: arm64
+          - os: ubuntu-20.04
+            arch: x86
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Set up QEMU
+        if: runner.os == 'Linux' && matrix.arch != 'x86_64'
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: all
 
       - name: Set up python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
@@ -65,6 +103,8 @@ jobs:
 
       - name: Install poetry
         uses: snok/install-poetry@v1
+        with:
+          version: 1.8.5
 
       - name: Install dependencies
         run: |
@@ -72,23 +112,37 @@ jobs:
           poetry install --only main
 
       - name: Build wheel
+        env:
+          CIBW_ARCHS: ${{ matrix.arch }}
         run: poetry build --format=wheel
 
-      - name: Setup test environment
+      - name: Setup clean test environment
+        shell: bash
         run: |
+          python -m venv venv
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            source venv/Scripts/activate
+          else
+            source venv/bin/activate
+          fi
           python -m pip install --upgrade pip
           python -m pip install pytest pandas
           python -m pip install dist/*.whl
 
       - name: Run tests
+        shell: bash
         run: |
-          cd tests
-          python -m pytest
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            source venv/Scripts/activate
+          else
+            source venv/bin/activate
+          fi
+          python -m pytest tests/
 
       - name: Upload wheel
         uses: actions/upload-artifact@v4
         with:
-          name: wheels-${{ matrix.os }}-py${{ matrix.python-version }}${{ matrix.target && format('-{0}', matrix.target) || '' }}
+          name: wheels-${{ matrix.os }}-${{ matrix.arch }}-py${{ matrix.python-version }}
           path: dist/*.whl
 
   upload_to_pypi:
