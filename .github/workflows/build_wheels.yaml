@@ -59,25 +59,38 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Sanitize matrix.cibw_build
+        id: sanitize_build
+        run: echo "CIBW_BUILD_SANITIZED=$(echo '${{ matrix.cibw_build }}' | sed 's/\*/_/g')" >> $GITHUB_ENV
+        shell: bash
+
       - name: Set up python 3.12
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          architecture: ${{ matrix.cibw_archs == 'x86' && 'x86' || 'x64' }}
+
+      # Install Visual Studio components
+      - name: Install Visual Studio Components
+        shell: powershell
+        run: |
+          $VS_PATH = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\BuildTools"
+          if (-not (Test-Path $VS_PATH)) {
+            Write-Host "Installing Visual Studio Build Tools..."
+            Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_buildtools.exe -OutFile vs_buildtools.exe
+            Start-Process -FilePath .\vs_buildtools.exe -ArgumentList "--quiet", "--wait", "--norestart", "--nocache", `
+              "--installPath", "$VS_PATH", `
+              "--add", "Microsoft.VisualStudio.Component.VC.Tools.x86.x64", `
+              "--add", "Microsoft.VisualStudio.Component.Windows10SDK.19041", `
+              "--add", "Microsoft.VisualStudio.Component.VC.14.29.CLI.Support", `
+              "--add", "Microsoft.VisualStudio.Component.VC.14.29.ARM64" -Wait
+          }
 
       - name: Install poetry
         uses: snok/install-poetry@v1
         with:
           virtualenvs-create: false
           virtualenvs-in-project: false
-
-      # Add Visual Studio build tools
-      - name: Install Visual Studio Build Tools
-        uses: microsoft/setup-msbuild@v2
-
-      - name: Add MSBuild to PATH
-        uses: microsoft/setup-msbuild@v2
-        with:
-          msbuild-architecture: x64
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.16.5
@@ -88,16 +101,26 @@ jobs:
           CIBW_TEST_REQUIRES: pytest pandas
           CIBW_TEST_COMMAND: |
             dir /s {package}
+            python -c "import sys; print('Python:', sys.executable, sys.version)"
+            python -c "import platform; print('Platform:', platform.machine(), platform.architecture())"
+            python -c "import os; print('PATH:', os.environ.get('PATH'))"
+            python -c "import newtype; print('newtype location:', newtype.__file__)"
             pytest {package}/tests -v
           CIBW_BEFORE_BUILD: |
             python -m pip install --upgrade pip
             python -m pip install setuptools wheel
+            python -m pip install poetry-core
             python -m pip list
           CIBW_BUILD_VERBOSITY: 3
           CIBW_ENVIRONMENT: |
             DISTUTILS_USE_SDK=1
             MSSdk=1
-            PYTHONVERBOSE=1
+            PYTHONVERBOSITY=1
+            VS160COMNTOOLS="C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\Tools"
+            VSCMD_ARG_TGT_ARCH=${{ matrix.cibw_archs == 'x86' && 'x86' || (matrix.cibw_archs == 'ARM64' && 'arm64' || 'x64') }}
+            VCVARSALL_ARCH=${{ matrix.cibw_archs == 'x86' && 'x86' || (matrix.cibw_archs == 'ARM64' && 'arm64' || 'amd64') }}
+            PY_VCRUNTIME_REDIST=true
+            _PYTHON_HOST_PLATFORM=win-${{ matrix.cibw_archs == 'x86' && '32' || '64' }}
 
       - uses: actions/upload-artifact@v4
         with:
@@ -248,27 +271,47 @@ jobs:
           CIBW_TEST_REQUIRES: pytest pandas
           CIBW_TEST_COMMAND: |
             ls -R {package}
+            python -c "import sys; print('Python:', sys.executable, sys.version)"
+            python -c "import platform; print('Platform:', platform.machine(), platform.architecture())"
+            python -c "import os; print('PATH:', os.environ.get('PATH'))"
             python -c "import newtype; print('newtype location:', newtype.__file__)"
+            python -c "import glob; print('SO files:', glob.glob('{package}/**/*.so', recursive=True))"
             python -c "from newtype.extensions import newtypeinit; print('newtypeinit exists')"
             pytest {package}/tests -v
           CIBW_BEFORE_BUILD: |
             python -m pip install --upgrade pip
             python -m pip install setuptools wheel
+            python -m pip install poetry-core
             python -m pip list
           CIBW_REPAIR_WHEEL_COMMAND: |
             echo "=== Wheel Contents Before Repair ==="
             unzip -l {wheel}
             delocate-listdeps --all {wheel}
+            echo "=== Running delocate-wheel ==="
             delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}
             echo "=== Wheel Contents After Repair ==="
             unzip -l {dest_dir}/*.whl
+            echo "=== Checking SO files ==="
+            find {dest_dir} -name "*.so" -exec otool -L {} \;
           CIBW_BUILD_VERBOSITY: 3
           CIBW_ENVIRONMENT: |
             MACOSX_DEPLOYMENT_TARGET=10.14
             ARCHFLAGS="-arch x86_64"
             PYTHONVERBOSE=1
-            CFLAGS="-v"
-            LDFLAGS="-v"
+            CFLAGS="-v -arch x86_64"
+            LDFLAGS="-v -arch x86_64"
+            _PYTHON_HOST_PLATFORM="macosx-10.14-x86_64"
+            SETUPTOOLS_USE_DISTUTILS=stdlib
+
+      - name: Debug wheel contents
+        run: |
+          echo "=== Listing wheelhouse contents ==="
+          ls -R wheelhouse/
+          echo "=== Examining wheel files ==="
+          for whl in wheelhouse/*.whl; do
+            echo "=== Contents of $whl ==="
+            unzip -l "$whl"
+          done
 
       - uses: actions/upload-artifact@v4
         with:
