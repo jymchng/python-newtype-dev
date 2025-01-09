@@ -32,6 +32,7 @@ jobs:
           version: 1.8.5
 
       - name: Build sdist
+        shell: bash
         run: |
           poetry self add "poetry-dynamic-versioning[plugin]"
           poetry build --format=sdist
@@ -47,7 +48,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, windows-latest, macos-11, macos-13]
+        os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
         arch: [x86_64, x86, arm64, aarch64, ppc64le, s390x]
         exclude:
@@ -62,26 +63,26 @@ jobs:
             python-version: "3.8"
             arch: arm64
           # macOS exclusions
-          - os: macos-11
+          - os: macos-latest
             arch: x86
-          - os: macos-11
+          - os: macos-latest
             arch: aarch64
-          - os: macos-11
+          - os: macos-latest
             arch: ppc64le
-          - os: macos-11
+          - os: macos-latest
             arch: s390x
-          - os: macos-13
+          - os: macos-latest
             arch: x86
-          - os: macos-13
+          - os: macos-latest
             arch: aarch64
-          - os: macos-13
+          - os: macos-latest
             arch: ppc64le
-          - os: macos-13
+          - os: macos-latest
             arch: s390x
           # Ubuntu exclusions
-          - os: ubuntu-20.04
+          - os: ubuntu-latest
             arch: arm64
-          - os: ubuntu-20.04
+          - os: ubuntu-latest
             arch: x86
 
     steps:
@@ -106,12 +107,18 @@ jobs:
         with:
           version: 1.8.5
 
+      - name: Add Poetry to path
+        shell: bash
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+
       - name: Install dependencies
+        shell: bash
         run: |
           poetry self add "poetry-dynamic-versioning[plugin]"
           poetry install --only main
 
       - name: Build wheel
+        shell: bash
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
         run: poetry build --format=wheel
