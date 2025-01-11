@@ -69,10 +69,10 @@ UNDEFINED = object()
 T = TypeVar("T", bound=type)
 
 
-__GLOBAL_INTERNAL_TYPE_CACHE__: "WeakKeyDictionary" = WeakKeyDictionary()
+__GLOBAL_INTERNAL_TYPE_CACHE__: "WeakKeyDictionary[type, type]" = WeakKeyDictionary()
 
 
-def newtype_exclude(func: "Callable"):
+def newtype_exclude(func: "Callable[..., Any]") -> "Callable[..., Any]":
     """Decorator to exclude a method from type wrapping.
 
     This decorator marks methods that should not be wrapped by NewTypeMethod,
@@ -98,7 +98,7 @@ def newtype_exclude(func: "Callable"):
     return func
 
 
-def func_is_excluded(func):
+def func_is_excluded(func: "Callable[..., Any]") -> bool:
     """Check if a function is excluded from type wrapping.
 
     Args:
@@ -163,7 +163,7 @@ def NewType(base_type: T, **_context: "Dict[str, Any]") -> "T":  # noqa: N802, C
     try:
         # we try to see if it is cached, if it is not, no problem either
         if base_type in __GLOBAL_INTERNAL_TYPE_CACHE__:
-            return __GLOBAL_INTERNAL_TYPE_CACHE__[base_type]
+            return cast(T, __GLOBAL_INTERNAL_TYPE_CACHE__[base_type])
     except KeyError:
         pass
 
@@ -191,7 +191,7 @@ def NewType(base_type: T, **_context: "Dict[str, Any]") -> "T":  # noqa: N802, C
                     NEWTYPE_INIT_KWARGS_STR,
                 )
 
-        def __init_subclass__(cls, **init_subclass_context) -> None:
+        def __init_subclass__(cls, **init_subclass_context: Any) -> None:
             """Initialize a subclass of BaseNewType.
 
             This method is called when creating a new subclass of BaseNewType.
@@ -230,7 +230,7 @@ def NewType(base_type: T, **_context: "Dict[str, Any]") -> "T":  # noqa: N802, C
                     setattr(cls, k, v)
             cls.__init__ = NewTypeInit(constructor)  # type: ignore[method-assign]
 
-        def __new__(cls, value=None, *_args, **_kwargs):
+        def __new__(cls, value: Any = None, *_args: Any, **_kwargs: Any) -> "BaseNewType":
             """Create a new instance of BaseNewType.
 
             This method handles the creation of new instances, ensuring that
@@ -261,7 +261,7 @@ def NewType(base_type: T, **_context: "Dict[str, Any]") -> "T":  # noqa: N802, C
                 inst = cast("BaseNewType", base_type.__new__(cls, value))
             return inst
 
-        def __init__(self, _value=None, *_args, **_kwargs):
+        def __init__(self, _value: Any = None, *_args: Any, **_kwargs: Any) -> None:
             """Initialize an instance of BaseNewType.
 
             This method is called when an instance is created. It handles

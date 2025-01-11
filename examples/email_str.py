@@ -7,7 +7,7 @@ import re
 from newtype import NewType, newtype_exclude
 
 
-class EmailStr(NewType(str)):
+class EmailStr(NewType(str)): # type: ignore[misc]
     # you can define `__slots__` to save space
     __slots__ = (
         '_local_part',
