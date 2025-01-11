@@ -197,15 +197,15 @@ poetry self add poetry-dynamic-versioning
 poetry version patch
 ```
 
-2. Commit your changes and push to the repository.
+2. Set the tag to the new version:
+```
+git tag v0.1.3
+```
+
+3. Commit your changes and push to the repository.
 
 ```bash
 git commit -m "Release version 0.1.3"
-```
-
-3. Set the tag to the new version:
-```
-git tag v0.1.3
 ```
 
 4. Push the changes to the repository:
