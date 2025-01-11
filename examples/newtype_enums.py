@@ -1,11 +1,11 @@
 from enum import Enum
+from typing import Optional, Type
 
 import pytest
+from newtype import NewType
 
-from newtype import NewType, newtype_exclude
 
-
-class ENV(NewType(str), Enum):
+class ENV(NewType(str), Enum): # type: ignore[misc]
 
     LOCAL = "LOCAL"
     DEV = "DEV"
@@ -23,26 +23,33 @@ class RegularENV(str, Enum):
     PREPROD = "PREPROD"
     PROD = "PROD"
 
+RollYourOwnNewTypeEnum: "Optional[Type[RollYourOwnNewTypeEnum]]" = None
+
 class ENVVariant(str):
 
     __VALID_MEMBERS__ = ["LOCAL", "DEV", "SIT", "UAT", "PREPROD", "PROD"]
 
-    def __new__(cls, value: str):
+    def __new__(cls, value: str) -> "ENVVariant":
         members = ENVVariant.__VALID_MEMBERS__
-        # if isinstance(value, RollYourOwnNewTypeEnum):
-        #     value_as_str = str(value.value)
-        # else:
-        value_as_str = str(value)
+        value_as_str = str(value.value if hasattr(value, "value") else value)
         if value_as_str not in members:
             raise ValueError(f"`value` = {value} must be one of `{members}`; `value_as_str` = {value_as_str}")
         return super().__new__(cls, value_as_str)
 
-    # why not i write my own `.replace(..)`
-    # yes, you can but how?
-    def my_replace(self, old: "ENVVariant", new: "ENVVariant", count: int=-1):
-        return ENVVariant(str(self).replace(str(old), str(new), count))
+    def my_replace(self, old: "ENVVariant", new: "ENVVariant", count: int=-1) -> "ENVVariant":
+        # Convert both old and new to their string values
+        old_str = str(old.value if hasattr(old, "value") else old)
+        new_str = str(new.value if hasattr(new, "value") else new)
+        # Do the replacement on string values
+        result = str(self.value if hasattr(self, "value") else self).replace(old_str, new_str, count)
+        # For enums, we need to look up the enum member by value
+        if issubclass(type(self), Enum):
+            return type(self)(result)  # This will find the enum member
 
-class RollYourOwnNewTypeEnum(ENVVariant, Enum):
+        # For non-enum types, create new instance directly
+        return type(self)(result)
+
+class RollYourOwnNewTypeEnum(ENVVariant, Enum): # type: ignore[no-redef]
 
     LOCAL = "LOCAL"
     DEV = "DEV"
@@ -51,8 +58,8 @@ class RollYourOwnNewTypeEnum(ENVVariant, Enum):
     PREPROD = "PREPROD"
     PROD = "PROD"
 
-
-def test_nt_env_replace():
+# mypy doesn't raise errors here
+def test_nt_env_replace() -> None:
 
     env = ENV.LOCAL
 
@@ -63,6 +70,7 @@ def test_nt_env_replace():
     # let's say now we want to replace the environment
     # nevermind about the reason why we want to do so
     env = env.replace(ENV.LOCAL, ENV.DEV)
+    # reveal_type(env) # Revealed type is "newtype_enums.ENV"
 
     # replacement is successful
     assert env is ENV.DEV
@@ -76,11 +84,13 @@ def test_nt_env_replace():
         # cannot replace with something that is not a `ENV`
         env = env.replace(ENV.DEV, "NotAnEnv")
 
+    # reveal_type(env) # Revealed type is "newtype_enums.ENV"
+
     with pytest.raises(ValueError):
         # cannot even make 'DEV' -> 'dev'
         env = env.lower()
 
-def test_reg_env_replace():
+def test_reg_env_replace() -> None:
 
     env = RegularENV.LOCAL
 
@@ -90,7 +100,7 @@ def test_reg_env_replace():
     assert isinstance(env, RegularENV) # pass
 
     # now we try to replace
-    env = env.replace(RegularENV.LOCAL, RegularENV.DEV)
+    env = env.replace("LOCAL", "DEV")
 
     # we are hoping that it will continue to be a `RegularENV.DEV` but it is not
     assert env is not RegularENV.DEV # pass, no longer a `RegularENV`
@@ -98,7 +108,9 @@ def test_reg_env_replace():
     assert not isinstance(env, RegularENV)
     assert isinstance(env, str) # 'downcast' (?) to `str`
 
-def test_ryont_env_replace():
+def test_ryont_env_replace() -> None:
+
+    assert RollYourOwnNewTypeEnum is not None
 
     env = RollYourOwnNewTypeEnum.LOCAL
 
@@ -130,8 +142,8 @@ def test_ryont_env_replace():
 
     env = RollYourOwnNewTypeEnum.LOCAL
 
-    # env = env.my_replace(RollYourOwnNewTypeEnum.LOCAL, RollYourOwnNewTypeEnum.PREPROD)
+    env = env.my_replace(RollYourOwnNewTypeEnum.LOCAL, RollYourOwnNewTypeEnum.PREPROD)
 
     assert isinstance(env, str)
-    assert env is not RollYourOwnNewTypeEnum.PREPROD
+    assert env is RollYourOwnNewTypeEnum.PREPROD
     assert isinstance(env, RollYourOwnNewTypeEnum)
