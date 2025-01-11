@@ -4,7 +4,7 @@ build-backend = "poetry_dynamic_versioning.backend"
 
 [tool.poetry]
 name = "python-newtype"
-version = "0.1.3"
+version = "0.1.4"
 homepage = "https://github.com/jymchng/python-newtype-dev"
 repository = "https://github.com/jymchng/python-newtype-dev"
 license = "MIT"
