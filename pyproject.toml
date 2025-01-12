@@ -142,6 +142,7 @@ exclude = [
     "examples/bounded_wrapped_ints.py",
     "examples/newtype_enums.py",
     "examples/mutable.py",
+    "examples/pydantic-compat.py",
 ]
 
 [tool.ruff.format]
