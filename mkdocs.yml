@@ -43,6 +43,7 @@ nav:
     - Basic Examples: examples/basic_examples.md
     - Advanced Examples: examples/advanced_examples.md
     - Real World Examples: examples/real_world.md
+    - Using with Pydantic: examples/using_with_pydantic.md
   - Advanced Topics:
     - Type Inheritance: advanced-topics/type-inheritance.md
     - Method Interception: advanced-topics/method-interception.md
