@@ -140,6 +140,10 @@ dev: clean build test
 
 dev-debug: clean build-debug test
 
+.PHONY: export-docs
+export-docs:
+	$(POETRY) export --with=docs -o requirements-dev.txt
+
 install-poetry:
 	$(PYTHON) -m pip install poetry
 
