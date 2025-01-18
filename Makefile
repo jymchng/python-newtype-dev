@@ -95,7 +95,7 @@ build-debug: clean
 
 # Install dependencies
 install: build
-	$(PYTHON) -m pip install dist/python_newtype-0.1.0-*.whl
+	$(PYTHON) -m pip install dist/python_newtype-0.1.*-*.whl
 
 # Run all tests
 test:
