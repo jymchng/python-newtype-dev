@@ -4,7 +4,7 @@ build-backend = "poetry_dynamic_versioning.backend"
 
 [tool.poetry]
 name = "python-newtype"
-version = "0.1.4"
+version = "0.1.5"
 homepage = "https://github.com/jymchng/python-newtype-dev"
 repository = "https://github.com/jymchng/python-newtype-dev"
 license = "MIT"
@@ -16,6 +16,9 @@ readme = "README.md"
 packages = [{ include = "newtype" }]
 include = [
     { path = "newtype/*.so" },
+    { path = "newtype/*.pyd" },
+    { path = "newtype/extensions/*.so" },
+    { path = "newtype/extensions/*.pyd" },
     { path = "newtype/*" },
     { path = "newtype/extensions/**" }, # need to include this for the packager to include it in the distribution
 ]
