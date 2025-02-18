@@ -227,7 +227,8 @@ def NewType(base_type: T, **_context: "Dict[str, Any]") -> "T":  # noqa: N802, C
                 else:
                     if k == "__dict__":
                         continue
-                    setattr(cls, k, v)
+                    # (TODO: Fix enum issue)
+                    # setattr(cls, k, v)
             cls.__init__ = NewTypeInit(constructor)  # type: ignore[method-assign]
 
         def __new__(cls, value: Any = None, *_args: Any, **_kwargs: Any) -> "BaseNewType":
