@@ -94,6 +94,10 @@ static PyObject* NewTypeMethod_call(NewTypeMethodObject* self,
           self->func_get, Py_None, self->wrapped_cls, NULL);
     } else {
       DEBUG_PRINT("`self->obj` is not NULL\n");
+      DEBUG_PRINT("`self->wrapped_cls`: %s\n",
+                  PyUnicode_AsUTF8(PyObject_Repr(self->wrapped_cls)));
+      DEBUG_PRINT("`self->obj`: %s\n",
+                  PyUnicode_AsUTF8(PyObject_Repr(self->obj)));
       func = PyObject_CallFunctionObjArgs(
           self->func_get, self->obj, self->wrapped_cls, NULL);
     }
@@ -145,7 +149,10 @@ static PyObject* NewTypeMethod_call(NewTypeMethodObject* self,
   {  // now we try to build an instance of the subtype
     DEBUG_PRINT("`result` is an instance of `self->wrapped_cls`\n");
     PyObject *init_args, *init_kwargs;
-    PyObject *new_inst, *args_combined;
+    PyObject* new_inst;
+    PyObject* args_combined = NULL;
+    PyObject* super_class_new_args = NULL;
+    Py_ssize_t args_len = 0;
 
     if (self->obj == NULL) {
       PyObject* first_elem;
@@ -188,62 +195,214 @@ static PyObject* NewTypeMethod_call(NewTypeMethodObject* self,
                   PyUnicode_AsUTF8(PyObject_Repr(init_kwargs)));
     }
 
-    Py_ssize_t args_len = PyTuple_Size(init_args);
-    DEBUG_PRINT("`args_len`: %zd\n", args_len);
-    Py_ssize_t combined_args_len = 1 + args_len;
-    DEBUG_PRINT("`combined_args_len`: %zd\n", combined_args_len);
-    args_combined = PyTuple_New(combined_args_len);
-    DEBUG_PRINT("`args_combined`: %s\n",
-                PyUnicode_AsUTF8(PyObject_Repr(args_combined)));
-    if (args_combined == NULL) {
-      Py_XDECREF(init_args);
-      Py_XDECREF(init_kwargs);
-      Py_DECREF(result);
-      DEBUG_PRINT("`args_combined` is NULL\n");
-      return NULL;  // Use return NULL instead of Py_RETURN_NONE
-    }
-
-    // Set the first item of the new tuple to `result`
-    PyTuple_SET_ITEM(args_combined,
-                     0,
-                     result);  // `result` is now owned by `args_combined`
-
-    // Copy items from `init_args` to `args_combined`
-    for (Py_ssize_t i = 0; i < args_len; i++) {
-      PyObject* item = PyTuple_GetItem(init_args, i);  // Borrowed reference
-      if (item == NULL) {
-        DEBUG_PRINT("`item` is NULL\n");
-        Py_DECREF(args_combined);
+    if (init_args != NULL) {
+      DEBUG_PRINT("`init_args` is not NULL\n");
+      args_len = PyTuple_Size(init_args);
+      DEBUG_PRINT("`args_len`: %zd\n", args_len);
+      Py_ssize_t combined_args_len = 1 + args_len;
+      DEBUG_PRINT("`combined_args_len`: %zd\n", combined_args_len);
+      args_combined = PyTuple_New(combined_args_len);
+      DEBUG_PRINT("`args_combined`: %s\n",
+                  PyUnicode_AsUTF8(PyObject_Repr(args_combined)));
+      if (args_combined == NULL) {
         Py_XDECREF(init_args);
         Py_XDECREF(init_kwargs);
-        return NULL;
+        Py_DECREF(result);
+        DEBUG_PRINT("`args_combined` is NULL\n");
+        return NULL;  // Use return NULL instead of Py_RETURN_NONE
       }
-      DEBUG_PRINT("`item`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(item)));
-      Py_INCREF(item);  // Increase reference count
+      // Set the first item of the new tuple to `result`
       PyTuple_SET_ITEM(args_combined,
-                       i + 1,
-                       item);  // `item` is now owned by `args_combined`
+                       0,
+                       result);  // `result` is now owned by `args_combined`
+
+      // Copy items from `init_args` to `args_combined`
+      for (Py_ssize_t i = 0; i < args_len; i++) {
+        PyObject* item = PyTuple_GetItem(init_args, i);  // Borrowed reference
+        if (item == NULL) {
+          DEBUG_PRINT("`item` is NULL\n");
+          Py_DECREF(args_combined);
+          Py_XDECREF(init_args);
+          Py_XDECREF(init_kwargs);
+          return NULL;
+        }
+        DEBUG_PRINT("`item`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(item)));
+        Py_INCREF(item);  // Increase reference count
+        PyTuple_SET_ITEM(args_combined,
+                         i + 1,
+                         item);  // `item` is now owned by `args_combined`
+      }
+      DEBUG_PRINT("`args_combined`: %s\n",
+                  PyUnicode_AsUTF8(PyObject_Repr(args_combined)));
     }
-    DEBUG_PRINT("`args_combined`: %s\n",
-                PyUnicode_AsUTF8(PyObject_Repr(args_combined)));
+
+    if (init_args == NULL || init_kwargs == NULL) {
+      DEBUG_PRINT("`init_args` or `init_kwargs` is NULL\n");
+    };
 
     if (init_kwargs != NULL) {
       DEBUG_PRINT("`init_kwargs`: %s\n",
                   PyUnicode_AsUTF8(PyObject_Repr(init_kwargs)));
     };
 
-    // Call the function or constructor
+    // If `args_combined` is NULL, create a new tuple with one item
+    // and set `result` as the first item of the tuple
+    if (init_args == NULL) {
+      DEBUG_PRINT("`init_args` is NULL\n");
+
+      if (PyObject_SetAttrString(
+              self->obj, NEWTYPE_INIT_ARGS_STR, PyTuple_New(0))
+          < 0)
+      {
+        result = NULL;
+        goto done;
+      }
+      if (PyObject_SetAttrString(
+              self->obj, NEWTYPE_INIT_KWARGS_STR, PyDict_New())
+          < 0)
+      {
+        result = NULL;
+        goto done;
+      }
+      // goto done;
+      DEBUG_PRINT("`args_combined` is NULL\n");
+      DEBUG_PRINT("`init_kwargs`: %s\n",
+                  PyUnicode_AsUTF8(PyObject_Repr(init_kwargs)));
+      DEBUG_PRINT("`self->wrapped_cls`: %s\n",
+                  PyUnicode_AsUTF8(PyObject_Repr(self->wrapped_cls)));
+
+      super_class_new_args = PyTuple_New(2);
+      Py_XINCREF(self->wrapped_cls);
+      PyTuple_SET_ITEM(super_class_new_args, 0, self->wrapped_cls);
+      Py_XINCREF(self->obj);
+      PyTuple_SET_ITEM(super_class_new_args, 1, self->obj);
+      if (super_class_new_args == NULL) {
+        DEBUG_PRINT("`super_class_new_args` is NULL\n");
+        Py_XDECREF(result);
+        Py_XDECREF(self->obj);
+        Py_XDECREF(args_combined);
+        return NULL;
+      };
+
+      if (!PyTuple_CheckExact(super_class_new_args)) {
+        DEBUG_PRINT("`super_class_new_args` is not a tuple\n");
+        Py_DECREF(super_class_new_args);
+        Py_DECREF(result);
+        Py_DECREF(self->obj);
+        Py_DECREF(args_combined);
+        return NULL;
+      } else {
+        DEBUG_PRINT("`super_class_new_args` is a tuple\n");
+        // Check if the first item is the wrapped class
+        if (Py_Is(PyTuple_GetItem(super_class_new_args, 0), self->wrapped_cls))
+        {
+          DEBUG_PRINT(
+              "`super_class_new_args`'s first item is the wrapped class\n");
+        } else {
+          DEBUG_PRINT(
+              "`super_class_new_args`'s first item is not the wrapped class\n");
+        }
+        // Check if the second item is the object
+        if (Py_Is(PyTuple_GetItem(super_class_new_args, 1), self->obj)) {
+          DEBUG_PRINT("`super_class_new_args`'s second item is the object\n");
+        } else {
+          DEBUG_PRINT(
+              "`super_class_new_args`'s second item is not the object\n");
+        }
+        // Check length of `super_class_new_args`
+        if (PyTuple_Size(super_class_new_args) == 2) {
+          DEBUG_PRINT("`super_class_new_args` has 2 items\n");
+        } else {
+          DEBUG_PRINT("`super_class_new_args` has %zd items\n",
+                      PyTuple_Size(super_class_new_args));
+        }
+        DEBUG_PRINT("WHAT THE FUCK\n");
+
+        if (super_class_new_args == NULL) {
+          DEBUG_PRINT("`super_class_new_args` is NULL\n");
+          Py_XDECREF(result);
+          Py_XDECREF(self->obj);
+          Py_XDECREF(args_combined);
+          return NULL;
+        } else {
+          DEBUG_PRINT("`super_class_new_args` is not NULL\n");
+          Py_XINCREF(super_class_new_args);
+          DEBUG_PRINT("WHAT THE FUCK\n");
+        }
+        DEBUG_PRINT("WHAT THE FUCK\n");
+        DEBUG_PRINT("`self`: %s\n",
+                    PyUnicode_AsUTF8(PyObject_Repr((PyObject*)self)));
+        PyObject* super_inst =
+            PyObject_CallFunctionObjArgs((PyObject*)&PySuper_Type,
+                                         Py_TYPE(self->obj),
+                                         (PyObject*)self->obj,
+                                         NULL);
+        if (super_inst == NULL) {
+          DEBUG_PRINT("`super_inst` is NULL\n");
+          if (PyErr_Occurred()) {
+            PyErr_Print();
+          }
+          Py_XDECREF(result);
+          Py_XDECREF(self->obj);
+          Py_XDECREF(args_combined);
+          return NULL;
+        }
+        DEBUG_PRINT("WHAT THE FUCK\n");
+
+        PyObject* wrapped_cls_inst = PyObject_CallFunctionObjArgs(
+            self->wrapped_cls,
+            self->obj,
+            init_kwargs == NULL ? init_args : PyTuple_New(0),
+            init_kwargs,
+            NULL);
+        if (wrapped_cls_inst == NULL) {
+          DEBUG_PRINT("`wrapped_cls_inst` is NULL\n");
+          Py_XDECREF(result);
+          Py_XDECREF(self->obj);
+          Py_XDECREF(args_combined);
+          return NULL;
+        } else {
+          DEBUG_PRINT("`wrapped_cls_inst` is not NULL\n");
+          DEBUG_PRINT("`wrapped_cls_inst`: %s\n",
+                      PyUnicode_AsUTF8(PyObject_Repr(wrapped_cls_inst)));
+        }
+
+        args_combined = PyTuple_New(1);  // Allocate tuple with one element
+        // Py_INCREF(self->obj);
+        // PyTuple_SET_ITEM(args_combined, 0, self->obj);
+        Py_INCREF(result);
+        PyTuple_SET_ITEM(args_combined, 0, result);
+        DEBUG_PRINT("`args_combined`: %s\n",
+                    PyUnicode_AsUTF8(PyObject_Repr(args_combined)));
+        // Tackle this might be easier
+        // FAILED examples/newtype_enums.py::test_nt_env_replace - TypeError:
+        // <enum <ENV.LOCAL: 'LOCAL'>> cannot extend <enum 'ENV'>
+        new_inst =
+            PyObject_Call((PyObject*)self->cls, args_combined, init_kwargs);
+        if (new_inst == NULL) {
+          DEBUG_PRINT("`new_inst` is NULL\n");
+          Py_DECREF(result);
+          Py_DECREF(self->obj);
+          Py_DECREF(args_combined);
+          return NULL;
+        }
+        Py_DECREF(result);
+        Py_DECREF(self->obj);
+        Py_DECREF(args_combined);
+        DEBUG_PRINT("`new_inst`: %s\n",
+                    PyUnicode_AsUTF8(PyObject_Repr(new_inst)));
+        return new_inst;
+      }
+    }
+
     new_inst = PyObject_Call((PyObject*)self->cls, args_combined, init_kwargs);
 
     // Clean up
-    Py_DECREF(args_combined);  // Decrement reference count of `args_combined`
+    Py_XDECREF(args_combined);  // Decrement reference count of `args_combined`
     Py_XDECREF(init_args);
     Py_XDECREF(init_kwargs);
 
-    // Ensure proper error propagation
-    if (new_inst == NULL) {
-      return NULL;
-    }
+    DEBUG_PRINT("`new_inst`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(new_inst)));
 
     // Only proceed if we have all required objects and dictionaries
     if (self->obj != NULL && result != NULL && new_inst != NULL
@@ -446,6 +605,7 @@ static PyObject* NewTypeMethod_call(NewTypeMethodObject* self,
 
 done:
   Py_XINCREF(result);
+  DEBUG_PRINT("DONE! `result`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(result)));
   return result;
 }
 

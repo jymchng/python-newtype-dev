@@ -14,6 +14,14 @@ class ENV(NewType(str), Enum): # type: ignore[misc]
     PREPROD = "PREPROD"
     PROD = "PROD"
 
+print(type(ENV.LOCAL))
+print(type(ENV.LOCAL).__mro__)
+print(super(ENV, ENV.LOCAL).__self_class__)
+print(super(ENV, ENV.LOCAL).__thisclass__)
+print(super(super(ENV, ENV.LOCAL).__self_class__))
+print(super(ENV))
+print(str.__str__(ENV.LOCAL))
+
 class RegularENV(str, Enum):
 
     LOCAL = "LOCAL"
@@ -58,6 +66,7 @@ class RollYourOwnNewTypeEnum(ENVVariant, Enum): # type: ignore[no-redef]
     PREPROD = "PREPROD"
     PROD = "PROD"
 
+
 # mypy doesn't raise errors here
 def test_nt_env_replace() -> None:
 
@@ -71,6 +80,7 @@ def test_nt_env_replace() -> None:
     # nevermind about the reason why we want to do so
     env = env.replace(ENV.LOCAL, ENV.DEV)
     # reveal_type(env) # Revealed type is "newtype_enums.ENV"
+    print(f"`env`: {env}; type: {type(env)}")
 
     # replacement is successful
     assert env is ENV.DEV
