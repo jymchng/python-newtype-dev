@@ -26,6 +26,9 @@ def test_base_slots():
     assert base.name == "TestName"
 
     with pytest.raises(AttributeError):
+        base.__dict__
+
+    with pytest.raises(AttributeError):
         base.age = 30  # Should raise an error since 'age' is not a defined slot
 
 
@@ -34,6 +37,9 @@ def test_derived_slots():
     derived = Derived(Base("TestName"), 25)
     assert derived.name == "TestName"
     assert derived.age == 25
+
+    with pytest.raises(AttributeError):
+        derived.__dict__
 
     with pytest.raises(AttributeError):
         derived.address = (

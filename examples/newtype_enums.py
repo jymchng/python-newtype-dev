@@ -14,13 +14,6 @@ class ENV(NewType(str), Enum): # type: ignore[misc]
     PREPROD = "PREPROD"
     PROD = "PROD"
 
-print(type(ENV.LOCAL))
-print(type(ENV.LOCAL).__mro__)
-print(super(ENV, ENV.LOCAL).__self_class__)
-print(super(ENV, ENV.LOCAL).__thisclass__)
-print(super(super(ENV, ENV.LOCAL).__self_class__))
-print(super(ENV))
-print(str.__str__(ENV.LOCAL))
 
 class RegularENV(str, Enum):
 
