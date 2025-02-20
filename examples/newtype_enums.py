@@ -73,7 +73,6 @@ def test_nt_env_replace() -> None:
     # nevermind about the reason why we want to do so
     env = env.replace(ENV.LOCAL, ENV.DEV)
     # reveal_type(env) # Revealed type is "newtype_enums.ENV"
-    print(f"`env`: {env}; type: {type(env)}")
 
     # replacement is successful
     assert env is ENV.DEV
