@@ -192,23 +192,37 @@ poetry self add poetry-dynamic-versioning
 
 ### To Release a New Version
 
-1. Set the version to the next patch version:
+0. Make sure the Pull Request is merged into main.
+
+1. Make sure you are on the main branch:
+
+```bash
+git checkout main
+```
+
+Or
+
+```bash
+git switch main
+```
+
+2. Set the version to the next patch version:
 ```
 poetry version patch
 ```
 
-2. Set the tag to the new version:
+3. Set the tag to the new version:
 ```
 git tag v0.1.3
 ```
 
-3. Commit your changes and push to the repository.
+4. Commit your changes and push to the repository.
 
 ```bash
 git commit -m "Release version 0.1.3"
 ```
 
-4. Push the changes to the repository:
+5. Push the changes to the repository:
 ```
 git push --tags
 ```
