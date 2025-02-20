@@ -14,6 +14,7 @@ class ENV(NewType(str), Enum): # type: ignore[misc]
     PREPROD = "PREPROD"
     PROD = "PROD"
 
+
 class RegularENV(str, Enum):
 
     LOCAL = "LOCAL"
@@ -57,6 +58,7 @@ class RollYourOwnNewTypeEnum(ENVVariant, Enum): # type: ignore[no-redef]
     UAT = "UAT"
     PREPROD = "PREPROD"
     PROD = "PROD"
+
 
 # mypy doesn't raise errors here
 def test_nt_env_replace() -> None:

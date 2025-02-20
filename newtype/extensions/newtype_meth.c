@@ -94,6 +94,8 @@ static PyObject* NewTypeMethod_call(NewTypeMethodObject* self,
           self->func_get, Py_None, self->wrapped_cls, NULL);
     } else {
       DEBUG_PRINT("`self->obj` is not NULL\n");
+      DEBUG_PRINT("`self->wrapped_cls`: %s\n",
+                  PyUnicode_AsUTF8(PyObject_Repr(self->wrapped_cls)));
       func = PyObject_CallFunctionObjArgs(
           self->func_get, self->obj, self->wrapped_cls, NULL);
     }
@@ -145,7 +147,9 @@ static PyObject* NewTypeMethod_call(NewTypeMethodObject* self,
   {  // now we try to build an instance of the subtype
     DEBUG_PRINT("`result` is an instance of `self->wrapped_cls`\n");
     PyObject *init_args, *init_kwargs;
-    PyObject *new_inst, *args_combined;
+    PyObject* new_inst;
+    PyObject* args_combined = NULL;
+    Py_ssize_t args_len = 0;
 
     if (self->obj == NULL) {
       PyObject* first_elem;
@@ -158,73 +162,136 @@ static PyObject* NewTypeMethod_call(NewTypeMethodObject* self,
         first_elem = PyTuple_GetItem(args, 0);
         Py_XINCREF(
             first_elem);  // Increment reference count of the first element
-
+        DEBUG_PRINT("`first_elem`: %s\n",
+                    PyUnicode_AsUTF8(PyObject_Repr(first_elem)));
       } else {  // `args` is empty here, then we are done actually
+        DEBUG_PRINT("`args` is empty\n");
         goto done;
       };
       if (PyObject_IsInstance(first_elem, (PyObject*)self->cls)) {
         init_args = PyObject_GetAttrString(first_elem, NEWTYPE_INIT_ARGS_STR);
         init_kwargs =
             PyObject_GetAttrString(first_elem, NEWTYPE_INIT_KWARGS_STR);
+        DEBUG_PRINT("`init_args`: %s\n",
+                    PyUnicode_AsUTF8(PyObject_Repr(init_args)));
+        DEBUG_PRINT("`init_kwargs`: %s\n",
+                    PyUnicode_AsUTF8(PyObject_Repr(init_kwargs)));
       } else {  // first element is not the subtype, so we are done also
+        DEBUG_PRINT("`first_elem` is not the subtype\n");
         goto done;
       }
       Py_XDECREF(first_elem);
     } else {  // `self->obj` is not NULL
 
+      DEBUG_PRINT("`self->obj` is not NULL\n");
       init_args = PyObject_GetAttrString(self->obj, NEWTYPE_INIT_ARGS_STR);
       init_kwargs = PyObject_GetAttrString(self->obj, NEWTYPE_INIT_KWARGS_STR);
+      DEBUG_PRINT("`init_args`: %s\n",
+                  PyUnicode_AsUTF8(PyObject_Repr(init_args)));
+      DEBUG_PRINT("`init_kwargs`: %s\n",
+                  PyUnicode_AsUTF8(PyObject_Repr(init_kwargs)));
     }
 
-    Py_ssize_t args_len = PyTuple_Size(init_args);
-    Py_ssize_t combined_args_len = 1 + args_len;
-    args_combined = PyTuple_New(combined_args_len);
-    if (args_combined == NULL) {
-      Py_XDECREF(init_args);
-      Py_XDECREF(init_kwargs);
-      Py_DECREF(result);
-      return NULL;  // Use return NULL instead of Py_RETURN_NONE
-    }
-
-    // Set the first item of the new tuple to `result`
-    PyTuple_SET_ITEM(args_combined,
-                     0,
-                     result);  // `result` is now owned by `args_combined`
-
-    // Copy items from `init_args` to `args_combined`
-    for (Py_ssize_t i = 0; i < args_len; i++) {
-      PyObject* item = PyTuple_GetItem(init_args, i);  // Borrowed reference
-      if (item == NULL) {
-        Py_DECREF(args_combined);
+    if (init_args != NULL) {
+      DEBUG_PRINT("`init_args` is not NULL\n");
+      args_len = PyTuple_Size(init_args);
+      DEBUG_PRINT("`args_len`: %zd\n", args_len);
+      Py_ssize_t combined_args_len = 1 + args_len;
+      DEBUG_PRINT("`combined_args_len`: %zd\n", combined_args_len);
+      args_combined = PyTuple_New(combined_args_len);
+      DEBUG_PRINT("`args_combined`: %s\n",
+                  PyUnicode_AsUTF8(PyObject_Repr(args_combined)));
+      if (args_combined == NULL) {
         Py_XDECREF(init_args);
         Py_XDECREF(init_kwargs);
-        return NULL;
+        Py_DECREF(result);
+        DEBUG_PRINT("`args_combined` is NULL\n");
+        return NULL;  // Use return NULL instead of Py_RETURN_NONE
       }
-      Py_INCREF(item);  // Increase reference count
+      // Set the first item of the new tuple to `result`
       PyTuple_SET_ITEM(args_combined,
-                       i + 1,
-                       item);  // `item` is now owned by `args_combined`
+                       0,
+                       result);  // `result` is now owned by `args_combined`
+
+      // Copy items from `init_args` to `args_combined`
+      for (Py_ssize_t i = 0; i < args_len; i++) {
+        PyObject* item = PyTuple_GetItem(init_args, i);  // Borrowed reference
+        if (item == NULL) {
+          DEBUG_PRINT("`item` is NULL\n");
+          Py_DECREF(args_combined);
+          Py_XDECREF(init_args);
+          Py_XDECREF(init_kwargs);
+          return NULL;
+        }
+        DEBUG_PRINT("`item`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(item)));
+        Py_INCREF(item);  // Increase reference count
+        PyTuple_SET_ITEM(args_combined,
+                         i + 1,
+                         item);  // `item` is now owned by `args_combined`
+      }
+      DEBUG_PRINT("`args_combined`: %s\n",
+                  PyUnicode_AsUTF8(PyObject_Repr(args_combined)));
     }
-    DEBUG_PRINT("`args_combined`: %s\n",
-                PyUnicode_AsUTF8(PyObject_Repr(args_combined)));
+
+    if (init_args == NULL || init_kwargs == NULL) {
+      DEBUG_PRINT("`init_args` or `init_kwargs` is NULL\n");
+    };
 
     if (init_kwargs != NULL) {
       DEBUG_PRINT("`init_kwargs`: %s\n",
                   PyUnicode_AsUTF8(PyObject_Repr(init_kwargs)));
     };
 
-    // Call the function or constructor
+    // If `args_combined` is NULL, create a new tuple with one item
+    // and set `result` as the first item of the tuple
+    if (init_args == NULL) {
+      DEBUG_PRINT("`init_args` is NULL\n");
+
+      if (PyObject_SetAttrString(
+              self->obj, NEWTYPE_INIT_ARGS_STR, PyTuple_New(0))
+          < 0)
+      {
+        result = NULL;
+        goto done;
+      }
+      if (PyObject_SetAttrString(
+              self->obj, NEWTYPE_INIT_KWARGS_STR, PyDict_New())
+          < 0)
+      {
+        result = NULL;
+        goto done;
+      }
+
+      args_combined = PyTuple_New(1);  // Allocate tuple with one element
+      Py_INCREF(result);
+      PyTuple_SET_ITEM(args_combined, 0, result);
+      DEBUG_PRINT("`args_combined`: %s\n",
+                  PyUnicode_AsUTF8(PyObject_Repr(args_combined)));
+      new_inst =
+          PyObject_Call((PyObject*)self->cls, args_combined, init_kwargs);
+      if (new_inst == NULL) {
+        DEBUG_PRINT("`new_inst` is NULL\n");
+        Py_DECREF(result);
+        Py_DECREF(self->obj);
+        Py_DECREF(args_combined);
+        return NULL;
+      }
+      Py_DECREF(result);
+      Py_DECREF(self->obj);
+      Py_DECREF(args_combined);
+      DEBUG_PRINT("`new_inst`: %s\n",
+                  PyUnicode_AsUTF8(PyObject_Repr(new_inst)));
+      return new_inst;
+    }
+
     new_inst = PyObject_Call((PyObject*)self->cls, args_combined, init_kwargs);
 
     // Clean up
-    Py_DECREF(args_combined);  // Decrement reference count of `args_combined`
+    Py_XDECREF(args_combined);  // Decrement reference count of `args_combined`
     Py_XDECREF(init_args);
     Py_XDECREF(init_kwargs);
 
-    // Ensure proper error propagation
-    if (new_inst == NULL) {
-      return NULL;
-    }
+    DEBUG_PRINT("`new_inst`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(new_inst)));
 
     // Only proceed if we have all required objects and dictionaries
     if (self->obj != NULL && result != NULL && new_inst != NULL
@@ -427,6 +494,7 @@ static PyObject* NewTypeMethod_call(NewTypeMethodObject* self,
 
 done:
   Py_XINCREF(result);
+  DEBUG_PRINT("DONE! `result`: %s\n", PyUnicode_AsUTF8(PyObject_Repr(result)));
   return result;
 }
 

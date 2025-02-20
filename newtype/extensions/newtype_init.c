@@ -101,6 +101,7 @@ static PyObject* NewTypeInit_call(NewTypeInitObject* self,
   PyObject* func;
 
   if (self->has_get) {
+    DEBUG_PRINT("`self->has_get`: %d\n", self->has_get);
     if (self->obj == NULL && self->cls == NULL) {
       // free standing function
       PyErr_SetString(
@@ -117,6 +118,8 @@ static PyObject* NewTypeInit_call(NewTypeInitObject* self,
           self->func_get, self->obj, self->cls, NULL);
     }
   } else {
+    DEBUG_PRINT("`self->func_get`: %s\n",
+                PyUnicode_AsUTF8(PyObject_Repr(self->func_get)));
     func = self->func_get;
   }
 
@@ -179,6 +182,7 @@ static PyObject* NewTypeInit_call(NewTypeInitObject* self,
     result = PyObject_Call(func, args, kwds);
   } else {
     PyErr_SetString(PyExc_TypeError, "Invalid type object in descriptor");
+    DEBUG_PRINT("`self->cls` is not a valid type object\n");
     result = NULL;
   }
 

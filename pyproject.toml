@@ -4,7 +4,7 @@ build-backend = "poetry_dynamic_versioning.backend"
 
 [tool.poetry]
 name = "python-newtype"
-version = "0.1.5"
+version = "0.1.6"
 homepage = "https://github.com/jymchng/python-newtype-dev"
 repository = "https://github.com/jymchng/python-newtype-dev"
 license = "MIT"
@@ -146,6 +146,7 @@ exclude = [
     "examples/newtype_enums.py",
     "examples/mutable.py",
     "examples/pydantic-compat.py",
+    "examples/newtype_enums_int.py",
 ]
 
 [tool.ruff.format]

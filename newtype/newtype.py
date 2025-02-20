@@ -180,7 +180,7 @@ def NewType(base_type: T, **_context: "Dict[str, Any]") -> "T":  # noqa: N802, C
 
         if hasattr(base_type, "__slots__"):
             __slots__ = (
-                *base_type.__slots__,
+                # *base_type.__slots__,
                 NEWTYPE_INIT_ARGS_STR,
                 NEWTYPE_INIT_KWARGS_STR,
             )
@@ -224,10 +224,14 @@ def NewType(base_type: T, **_context: "Dict[str, Any]") -> "T":  # noqa: N802, C
                     and not func_is_excluded(v)
                 ):
                     setattr(cls, k, NewTypeMethod(v, base_type))
+
                 else:
                     if k == "__dict__":
                         continue
-                    setattr(cls, k, v)
+                    try:
+                        setattr(cls, k, v)
+                    except AttributeError:
+                        continue
             cls.__init__ = NewTypeInit(constructor)  # type: ignore[method-assign]
 
         def __new__(cls, value: Any = None, *_args: Any, **_kwargs: Any) -> "BaseNewType":
