@@ -36,6 +36,8 @@ class GenericWrappedBoundedInt(NewType(int)):
 
 
 class Severity(GenericWrappedBoundedInt[5], Enum):
+    # `GenericWrappedBoundedInt` is a `NewType` that wraps an `int` and
+    # ensures that the value is within the bounds of the enum.
     DEBUG = 0
     INFO = 1
     WARNING = 2
@@ -44,42 +46,54 @@ class Severity(GenericWrappedBoundedInt[5], Enum):
 
 
 def test_severity():
+    # Test that enum values map to expected integers
     assert Severity.DEBUG == 0
     assert Severity.INFO == 1
     assert Severity.WARNING == 2
     assert Severity.ERROR == 3
     assert Severity.CRITICAL == 4
 
+    # Test that enum values themselves are immutable
+    # Should raise AttributeError when trying to modify the enum value directly
     with pytest.raises(AttributeError, match=r"[c|C]annot\s+reassign\s+\w+"):
         Severity.ERROR += 1
 
+    # Test working with enum values as variables
     severity = Severity.ERROR
     assert severity == 3
 
+    # Test incrementing severity level
+    # When incrementing, should get next enum value
     severity += 1
-    assert severity == 4
-    assert severity != 3
-    assert isinstance(severity, int)
-    assert isinstance(severity, Severity)
-    assert severity is not Severity.ERROR
-    assert severity is Severity.CRITICAL
+    assert severity == 4  # New value should be 4
+    assert severity != 3  # Old value should no longer match
+    assert isinstance(severity, int)  # Should still be an int
+    assert isinstance(severity, Severity)  # Should still be a Severity
+    assert severity is not Severity.ERROR  # Should no longer be ERROR
+    assert severity is Severity.CRITICAL  # Should now be CRITICAL
 
+    # Test decrementing severity level
+    # When decrementing, should get previous enum value
     severity -= 1
-    assert severity == 3
-    assert severity != 4
-    assert isinstance(severity, int)
-    assert isinstance(severity, Severity)
-    assert severity is Severity.ERROR
-    assert severity is not Severity.CRITICAL
+    assert severity == 3  # New value should be 3
+    assert severity != 4  # Old value should no longer match
+    assert isinstance(severity, int)  # Should still be an int
+    assert isinstance(severity, Severity)  # Should still be a Severity
+    assert severity is Severity.ERROR  # Should now be ERROR
+    assert severity is not Severity.CRITICAL  # Should no longer be CRITICAL
 
+    # Test lower bound handling
     severity = Severity.DEBUG
-    assert severity == 0
+    assert severity == 0  # DEBUG is lowest severity
     assert str(severity.value) == "0"
+    # Should raise ValueError when trying to go below DEBUG (0)
     with pytest.raises(ValueError, match=r"\d+ is not a valid Severity"):
         severity -= 1
 
+    # Test upper bound handling
     severity = Severity.CRITICAL
-    assert severity == 4
+    assert severity == 4  # CRITICAL is highest severity
     assert str(severity.value) == "4"
+    # Should raise ValueError when trying to go above CRITICAL (4)
     with pytest.raises(ValueError, match=r"\d+ is not a valid Severity"):
         severity += 1
