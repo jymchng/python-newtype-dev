@@ -45,6 +45,56 @@ class Severity(GenericWrappedBoundedInt[5], Enum):
     CRITICAL = 4
 
 
+# IntSeverity demonstrates a basic integer-based enum implementation
+# This shows the limitations compared to the NewType-based Severity enum above
+class IntSeverity(int, Enum):
+    # Standard severity levels mapped to integers 0-4
+    DEBUG = 0      # Lowest severity - debug messages
+    INFO = 1       # Informational messages
+    WARNING = 2    # Warning conditions
+    ERROR = 3      # Error conditions
+    CRITICAL = 4   # Critical conditions requiring immediate attention
+
+
+def test_int_severity():
+    # Basic enum value tests - similar to Severity
+    assert IntSeverity.DEBUG == 0
+    assert IntSeverity.INFO == 1
+    assert IntSeverity.WARNING == 2
+    assert IntSeverity.ERROR == 3
+    assert IntSeverity.CRITICAL == 4
+
+    # Initial enum value assignment works like Severity
+    int_severity = IntSeverity.ERROR
+    assert int_severity == 3
+    assert int_severity != 4
+    assert isinstance(int_severity, int)
+    assert isinstance(int_severity, IntSeverity)
+    assert int_severity is not IntSeverity.CRITICAL
+    assert int_severity is IntSeverity.ERROR
+
+    # DISADVANTAGE 1: Arithmetic operations break enum type safety
+    # Unlike Severity which maintains its type after arithmetic,
+    # IntSeverity degrades to a plain int
+    int_severity -= 1
+    assert int_severity == 2
+    assert int_severity != 3
+    assert isinstance(int_severity, int)
+    with pytest.raises(AssertionError):
+        # DISADVANTAGE 2: Lost enum type after arithmetic
+        assert isinstance(int_severity, IntSeverity)
+
+    # DISADVANTAGE 3: Lost enum identity after arithmetic
+    assert int_severity is not IntSeverity.ERROR
+    with pytest.raises(AssertionError):
+        # Even though value matches WARNING (2), it's not the same object
+        assert int_severity is IntSeverity.WARNING
+
+    # Overall, IntSeverity provides less type safety and consistency
+    # compared to Severity which maintains its type and identity
+    # through arithmetic operations
+
+
 def test_severity():
     # Test that enum values map to expected integers
     assert Severity.DEBUG == 0
