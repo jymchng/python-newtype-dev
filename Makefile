@@ -124,9 +124,12 @@ test-str:
 test-async:
 	$(PYTHON) -m pytest tests/test_async.py $(PYTEST_FLAGS)
 
+test-enums:
+	$(PYTHON) -m pytest tests/test_newtype_enums.py $(PYTEST_FLAGS)
+
 # Run memory leak tests
 test-leak:
-	$(PYTHON) -m pytest --enable-leak-tracking -W error --stacks 10 tests/test_newtype_init.py $(PYTEST_FLAGS)
+	$(PYTHON) -m pytest --enable-leak-tracking -W error tests/test_newtype_init.py $(PYTEST_FLAGS)
 
 # Run a specific test file (usage: make test-file FILE=test_newtype.py)
 test-file:

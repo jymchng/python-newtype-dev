@@ -146,6 +146,7 @@ exclude = [
     "examples/newtype_enums.py",
     "examples/mutable.py",
     "examples/pydantic-compat.py",
+    "examples/newtype_enums_int.py",
 ]
 
 [tool.ruff.format]

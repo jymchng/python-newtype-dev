@@ -96,8 +96,6 @@ static PyObject* NewTypeMethod_call(NewTypeMethodObject* self,
       DEBUG_PRINT("`self->obj` is not NULL\n");
       DEBUG_PRINT("`self->wrapped_cls`: %s\n",
                   PyUnicode_AsUTF8(PyObject_Repr(self->wrapped_cls)));
-      DEBUG_PRINT("`self->obj`: %s\n",
-                  PyUnicode_AsUTF8(PyObject_Repr(self->obj)));
       func = PyObject_CallFunctionObjArgs(
           self->func_get, self->obj, self->wrapped_cls, NULL);
     }
